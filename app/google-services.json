@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "203541998677",
+    "project_id": "youtubediary-301711",
+    "storage_bucket": "youtubediary-301711.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:203541998677:android:950fdd740fb02cd32a38dc",
+        "android_client_info": {
+          "package_name": "com.duke.elliot.youtubediary"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "203541998677-2dlo08se98s2ickum70eg1617d5a03gj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.duke.elliot.youtubediary",
+            "certificate_hash": "0eaf0683b2c3b6b2b63f5bc7e1e26e95fced8486"
+          }
+        },
+        {
+          "client_id": "203541998677-bn8e2o5pq3tq34v58ju9duben6ohcks3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANiUKcALI7RPP5gLVDhcCzCOMflMnTKuk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "203541998677-bn8e2o5pq3tq34v58ju9duben6ohcks3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

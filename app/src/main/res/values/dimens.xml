@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="spacing_smallest">4dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">16dp</dimen>
+    <dimen name="spacing_large">32dp</dimen>
+    <dimen name="spacing_largest">64dp</dimen>
+
+    <dimen name="text_size_smallest">12sp</dimen>
+    <dimen name="text_size_small">14sp</dimen>
+    <dimen name="text_size_medium">16sp</dimen>
+    <dimen name="text_size_large">18sp</dimen>
+
+    <dimen name="progress_bar_height">72dp</dimen>
+
+    <dimen name="simple_item_width">56dp</dimen>
+    <dimen name="simple_item_height">56dp</dimen>
+</resources>

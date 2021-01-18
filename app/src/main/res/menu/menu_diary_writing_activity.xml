@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/item_addYouTubeVideo"
+        android:icon="@drawable/ic_youtube_24dp"
+        android:title="@string/add_youtube_video"
+        app:showAsAction="ifRoom"/>
+</menu>
