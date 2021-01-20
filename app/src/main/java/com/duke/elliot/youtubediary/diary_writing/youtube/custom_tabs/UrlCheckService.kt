@@ -3,7 +3,9 @@ package com.duke.elliot.youtubediary.diary_writing.youtube.custom_tabs
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.duke.elliot.youtubediary.R
 import timber.log.Timber
 
 class UrlCheckService: Service() {
@@ -12,9 +14,9 @@ class UrlCheckService: Service() {
         if (url.startsWith("https://accounts.google.com/o/oauth2/approval/v2")) {
             val code = intent?.data?.getQueryParameter("approvalCode") ?: INVALID_CODE
             sendBroadcast(code)
-        } else {
-            // showToast(this, this.getString(R.string.click_on_the_page_where_the_verification_code_is_displayed))
-        }
+        } else
+            Toast.makeText(applicationContext, getString(R.string.click_on_login_page_toast), Toast.LENGTH_LONG).show()
+
 
         return super.onStartCommand(intent, flags, startId)
     }

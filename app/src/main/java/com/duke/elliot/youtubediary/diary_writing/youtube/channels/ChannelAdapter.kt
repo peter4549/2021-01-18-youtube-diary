@@ -9,10 +9,10 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.youtubediary.R
+import com.duke.elliot.youtubediary.database.DisplayChannelModel
 import com.duke.elliot.youtubediary.databinding.ItemChannelBinding
-import com.duke.elliot.youtubediary.diary_writing.youtube.ChannelModel
 
-class ChannelAdapter: ListAdapter<ChannelModel, RecyclerView.ViewHolder>(ChannelDiffCallback()) {
+class ChannelAdapter: ListAdapter<DisplayChannelModel, RecyclerView.ViewHolder>(ChannelDiffCallback()) {
 
     private lateinit var recyclerView: RecyclerView
     private var onItemClickListener: OnItemClickListener? = null
@@ -32,7 +32,7 @@ class ChannelAdapter: ListAdapter<ChannelModel, RecyclerView.ViewHolder>(Channel
     inner class ViewHolder constructor(private val binding: ItemChannelBinding):
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(channel: ChannelModel) {
+        fun bind(channel: DisplayChannelModel) {
             binding.root.setOnClickListener {
                 onItemClickListener?.onClick(channel.id)
             }
@@ -71,13 +71,12 @@ class ChannelAdapter: ListAdapter<ChannelModel, RecyclerView.ViewHolder>(Channel
     }
 }
 
-
-class ChannelDiffCallback: DiffUtil.ItemCallback<ChannelModel>() {
-    override fun areItemsTheSame(oldItem: ChannelModel, newItem: ChannelModel): Boolean {
+class ChannelDiffCallback: DiffUtil.ItemCallback<DisplayChannelModel>() {
+    override fun areItemsTheSame(oldItem: DisplayChannelModel, newItem: DisplayChannelModel): Boolean {
         return oldItem.id == newItem.id
     }
 
-    override fun areContentsTheSame(oldItem: ChannelModel, newItem: ChannelModel): Boolean {
+    override fun areContentsTheSame(oldItem: DisplayChannelModel, newItem: DisplayChannelModel): Boolean {
         return oldItem == newItem
     }
 }

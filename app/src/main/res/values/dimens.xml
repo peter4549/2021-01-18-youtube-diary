@@ -15,4 +15,9 @@
 
     <dimen name="simple_item_width">56dp</dimen>
     <dimen name="simple_item_height">56dp</dimen>
+
+    <dimen name="parallax_image_height">240dp</dimen>
+
+    <dimen name="custom_tabs_tooltip_margin_top">48dp</dimen>
+    <dimen name="custom_tabs_tooltip_margin_end">72dp</dimen>
 </resources>

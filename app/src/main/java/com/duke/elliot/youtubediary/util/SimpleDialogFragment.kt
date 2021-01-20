@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
+import android.widget.SimpleAdapter
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,6 +14,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.youtubediary.R
 import com.duke.elliot.youtubediary.databinding.FragmentSimpleDialogBinding
 import kotlinx.android.synthetic.main.item_simple.view.*
+import timber.log.Timber
 
 class SimpleDialogFragment: DialogFragment() {
 
@@ -21,6 +22,12 @@ class SimpleDialogFragment: DialogFragment() {
     private var title: String? = null
     private var simpleItems: ArrayList<SimpleItem> = arrayListOf()
     private var onItemSelectedListener: ((DialogFragment, SimpleItem) -> Unit)? = null
+    private var simpleItemAdapter = SimpleItemAdapter()
+    private var onScrollReachedBottomListener: OnScrollReachedBottomListener? = null
+
+    fun setOnScrollReachedBottomListener(onScrollReachedBottomListener: OnScrollReachedBottomListener) {
+        this.onScrollReachedBottomListener = onScrollReachedBottomListener
+    }
 
     fun setTitle(title: String) {
         this.title = title
@@ -34,6 +41,17 @@ class SimpleDialogFragment: DialogFragment() {
         this.onItemSelectedListener = onItemSelectedListener
     }
 
+    interface OnScrollReachedBottomListener {
+        fun onScrollReachedBottom(simpleItemAdapter: SimpleItemAdapter)
+    }
+
+    fun clear() {
+        title = null
+        simpleItems.clear()
+        onItemSelectedListener = null
+        simpleItemAdapter.notifyDataSetChanged()
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -44,14 +62,33 @@ class SimpleDialogFragment: DialogFragment() {
         binding.recyclerViewItem.apply {
             layoutManager = LinearLayoutManager(binding.root.context)
             setHasFixedSize(true)
-            adapter = ItemAdapter()
+            adapter = simpleItemAdapter
         }
+
+        binding.recyclerViewItem.addOnScrollListener(object: RecyclerView.OnScrollListener(){
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                Timber.d("recyclerViewVideo scrolled. dx: $dx, dy: $dy")
+                val layoutManager = (recyclerView.layoutManager as? LinearLayoutManager) ?: return
+                val itemCount = layoutManager.itemCount
+                val lastCompletelyVisibleItemPosition = layoutManager.findLastCompletelyVisibleItemPosition()
+
+                if (lastCompletelyVisibleItemPosition >= itemCount.dec()) {
+                    onScrollReachedBottomListener?.onScrollReachedBottom(simpleItemAdapter)
+                }
+            }
+        })
 
         return binding.root
     }
 
-    private inner class ItemAdapter: RecyclerView.Adapter<ItemAdapter.ViewHolder>() {
+    inner class SimpleItemAdapter: RecyclerView.Adapter<SimpleItemAdapter.ViewHolder>() {
         inner class ViewHolder(val view: View): RecyclerView.ViewHolder(view)
+
+        fun addItems(simpleItems: ArrayList<SimpleItem>) {
+            val positionStart = itemCount.dec()
+            this@SimpleDialogFragment.simpleItems.addAll(simpleItems)
+            notifyItemRangeInserted(positionStart, simpleItems.count())
+        }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context).inflate(
@@ -65,6 +102,7 @@ class SimpleDialogFragment: DialogFragment() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = simpleItems[position]
             holder.view.text_name.text = item.name
+            holder.view.image.visibility = View.VISIBLE
             item.imageUri?.let {
                 Glide.with(holder.view.context)
                     .load(it)

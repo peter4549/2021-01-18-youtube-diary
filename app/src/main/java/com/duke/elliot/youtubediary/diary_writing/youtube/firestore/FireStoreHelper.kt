@@ -1,7 +1,7 @@
 package com.duke.elliot.youtubediary.diary_writing.youtube.firestore
 
-import android.app.Activity
-import com.duke.elliot.youtubediary.diary_writing.youtube.ChannelModel
+import com.duke.elliot.youtubediary.base.BaseActivity
+import com.duke.elliot.youtubediary.database.DisplayChannelModel
 import com.duke.elliot.youtubediary.diary_writing.youtube.channels.YouTubeChannelsActivity
 import com.duke.elliot.youtubediary.main.MainApplication
 import com.google.firebase.firestore.FieldValue
@@ -10,17 +10,24 @@ import com.google.gson.Gson
 import org.json.JSONObject
 import timber.log.Timber
 
-class FireStoreHelper(private val activity: Activity) {
+class FireStoreHelper {
 
     private val firebaseUser = MainApplication.getFirebaseAuthInstance().currentUser
     private val userCollectionReference = FirebaseFirestore.getInstance().collection(COLLECTION_USERS)
     private val gson = Gson()
+    private var onDocumentSnapshotListener: OnDocumentSnapshotListener? = null
+    fun setOnDocumentSnapshotListener(onDocumentSnapshotListener: OnDocumentSnapshotListener) {
+        this.onDocumentSnapshotListener = onDocumentSnapshotListener
+    }
+
+    interface OnDocumentSnapshotListener {
+        fun onUserDocumentSnapshot(user: UserModel)
+    }
 
     /** 로그인후 호출되어야함. user id로만 부를 것. */
     fun setUserSnapshotListener(uid: String) {
         val documentReference = userCollectionReference.document(uid)
-
-        documentReference.addSnapshotListener(activity) { documentSnapshot, fireStoreException ->
+        documentReference.addSnapshotListener { documentSnapshot, fireStoreException ->
             fireStoreException?.let {
                 // Exception occured.
                 // 채널 정보를 불러올 수 없습니다. 못했습니다.. 등등.
@@ -29,9 +36,7 @@ class FireStoreHelper(private val activity: Activity) {
                     if (documentSnapshot.exists()) {
                         documentSnapshot.data?.let {
                             val user =  gson.fromJson(JSONObject(it).toString(), UserModel::class.java)
-                            val channels = user.youtubeChannels
-                            if (activity is YouTubeChannelsActivity)
-                                activity.submitChannels(channels)
+                            onDocumentSnapshotListener?.onUserDocumentSnapshot(user)
                         }
 
                         /*
@@ -84,7 +89,7 @@ class FireStoreHelper(private val activity: Activity) {
         }
     }
 
-    fun addChannel(channel: ChannelModel) {
+    fun addChannel(channel: DisplayChannelModel) {
         firebaseUser?.uid?.let {
             val documentReference = userCollectionReference.document(it)
             documentReference.update(UserModel.FILED_YOUTUBE_CHANNELS, FieldValue.arrayUnion(channel))

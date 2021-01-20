@@ -12,6 +12,10 @@
     <string name="channel_not_found">채널을 찾을 수 없습니다.</string>
     <string name="custom_tabs_service_bind_failure_message">인증 서버에 연결할 수 없습니다.</string>
     <string name="video_not_found">비디오를 찾을 수 없습니다.</string>
+    <string name="click_on_login_page_dialog">로그인 페이지에서 \n체크 버튼을 클릭하세요.</string>
+    <string name="click_on_login_page_toast">로그인 페이지에서 클릭하세요.</string>
+    <string name="authentication_failed">인증에 실패했습니다.</string>
+
 
     <!-- SignInActivity -->
     <string name="sign_in">로그인</string>

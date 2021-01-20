@@ -12,14 +12,15 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.duke.elliot.youtubediary.R
 import com.duke.elliot.youtubediary.base.BaseActivity
+import com.duke.elliot.youtubediary.database.DisplayChannelModel
+import com.duke.elliot.youtubediary.database.DisplayVideoModel
 import com.duke.elliot.youtubediary.databinding.ActivityYoutubeChannelsBinding
-import com.duke.elliot.youtubediary.diary_writing.youtube.ChannelModel
 import com.duke.elliot.youtubediary.diary_writing.youtube.ItemModel
 import com.duke.elliot.youtubediary.diary_writing.youtube.YouTubeApi
 import com.duke.elliot.youtubediary.diary_writing.youtube.custom_tabs.TooltipActivity
 import com.duke.elliot.youtubediary.diary_writing.youtube.custom_tabs.UrlCheckService
 import com.duke.elliot.youtubediary.diary_writing.youtube.firestore.FireStoreHelper
-import com.duke.elliot.youtubediary.diary_writing.youtube.videos.DisplayVideoModel
+import com.duke.elliot.youtubediary.diary_writing.youtube.firestore.UserModel
 import com.duke.elliot.youtubediary.diary_writing.youtube.videos.YouTubeVideosActivity
 import com.duke.elliot.youtubediary.main.MainApplication
 import com.duke.elliot.youtubediary.sign_in.SignInActivity
@@ -27,14 +28,13 @@ import kotlinx.android.synthetic.main.item_simple.view.*
 import kotlinx.coroutines.*
 import timber.log.Timber
 
-class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListener {
+class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListener, FireStoreHelper.OnDocumentSnapshotListener {
 
     private lateinit var binding: ActivityYoutubeChannelsBinding
     private lateinit var viewModel: YouTubeChannelsViewModel
     private lateinit var channelAdapter: ChannelAdapter
     private lateinit var customTabsClient: CustomTabsClient
     private lateinit var customTabsServiceConnection: CustomTabsServiceConnection
-    private lateinit var fireStoreHelper: FireStoreHelper
     private var customTabsSession: CustomTabsSession? = null
     private var pageChangeCount = 0
 
@@ -48,8 +48,6 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
         val viewModelFactory = YouTubeChannelsViewModelFactory()
         viewModel = ViewModelProvider(viewModelStore, viewModelFactory)[YouTubeChannelsViewModel::class.java]
 
-        fireStoreHelper = FireStoreHelper(this)
-
         channelAdapter = ChannelAdapter()
         channelAdapter.setOnItemClickListener(this)
         binding.recyclerViewChannel.apply {
@@ -58,7 +56,7 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
             adapter = channelAdapter
         }
 
-        binding.textAddChannel.setOnClickListener {
+        binding.frameLayoutAddChannel.setOnClickListener {
             bindCustomTabsService()
         }
 
@@ -68,13 +66,10 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
         )
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        val firebaseAuth = MainApplication.getFirebaseAuthInstance()
-        firebaseAuth.currentUser?.let {
-            // Directly call channel info. register listener. here.
-            fireStoreHelper.setUserSnapshotListener(it.uid)
+    override fun onStart() {
+        super.onStart()
+        viewModel.firebaseAuth.currentUser?.let {
+            viewModel.registerFireStoreHelper(it.uid, this)
         } ?: run {
             requestSignIn()
         }
@@ -112,7 +107,7 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
                 val channel = channels[0]
 
                 if (viewModel.channels.notContains(channel)) // TODO, id is equal but other is changed. notify that.
-                    fireStoreHelper.addChannel(channels[0])
+                    viewModel.fireStoreHelper.addChannel(channels[0])
                 else
                     showToast(getString(R.string.this_channel_has_already_been_added))
             } catch (t: Throwable) {
@@ -122,7 +117,7 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
         }
     }
 
-    fun submitChannels(channels: List<ChannelModel>) {
+    fun submitChannels(channels: List<DisplayChannelModel>) {
         for (channel in channels) {
             if (viewModel.channels.notContains(channel))
                 viewModel.channels.add(channel)
@@ -164,18 +159,9 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
 
                 val builder = CustomTabsIntent.Builder()
                 customTabsSession?.let { builder.setSession(it) }
-                val icon = BitmapFactory.decodeResource(resources, R.drawable.ic_check_mark_48px)
+                val icon = BitmapFactory.decodeResource(resources, R.drawable.ic_checkmark_48px)
                 val title = "완료." // TODO: change to res.
 
-
-                /*
-                builder.setToolbarColor(
-                        ContextCompat.getColor(
-                                applicationContext,
-                                R.color.colorFragmentBackground
-                        )
-                )
-                 */
                 builder.setActionButton(icon, title, createPendingIntent(), true)
                 builder.setStartAnimations(
                     applicationContext,
@@ -240,8 +226,8 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
         }
     }
 
-    private fun createChannelModel(channelItem: ItemModel): ChannelModel {
-        return ChannelModel(
+    private fun createChannelModel(channelItem: ItemModel): DisplayChannelModel {
+        return DisplayChannelModel(
                 id = channelItem.id,
                 title = channelItem.snippet.title,
                 thumbnailUri = channelItem.snippet.thumbnails.medium?.url
@@ -295,7 +281,7 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
                     showToast("success")
                     val uid = MainApplication.getFirebaseAuthInstance().currentUser?.uid
                     uid?.let {
-                        fireStoreHelper.setUserSnapshotListener(uid)
+                        viewModel.registerFireStoreHelper(uid, this)
                     }
 
                     // Load channel info. from user.
@@ -324,6 +310,11 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
         startYouTubeVideosActivity(channelId)
     }
 
+    override fun onUserDocumentSnapshot(user: UserModel) {
+        val channels = user.youtubeChannels
+        submitChannels(channels)
+    }
+
     companion object {
         private const val CUSTOM_TAB_PACKAGE_NAME = "com.android.chrome"
         private const val ACTION_NEW_INTENT = "com.duke.elliot.youtubediary.diary_writing.youtube.you_tube_channels_activity" +
@@ -340,5 +331,5 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
                 ".youtube_channels_activity.extra_name_display_video_model"
     }
 
-    private fun MutableList<ChannelModel>.notContains(element: ChannelModel) = !contains(element)
+    private fun MutableList<DisplayChannelModel>.notContains(element: DisplayChannelModel) = !contains(element)
 }

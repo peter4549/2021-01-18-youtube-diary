@@ -8,6 +8,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.duke.elliot.youtubediary.R
 import com.duke.elliot.youtubediary.base.BaseActivity
+import com.duke.elliot.youtubediary.database.DisplayPlaylistModel
+import com.duke.elliot.youtubediary.database.DisplayVideoModel
 import com.duke.elliot.youtubediary.databinding.ActivityYoutubeVideosBinding
 import com.duke.elliot.youtubediary.diary_writing.youtube.*
 import com.duke.elliot.youtubediary.diary_writing.youtube.channels.YouTubeChannelsActivity.Companion.EXTRA_NAME_CHANNEL_ID
@@ -20,7 +22,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListener {
+class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListener, SimpleDialogFragment.OnScrollReachedBottomListener {
 
     private lateinit var binding:ActivityYoutubeVideosBinding
     private lateinit var viewModel: YouTubeVideosViewModel
@@ -33,40 +35,57 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
     private var uninitialized = true
     private var previousPageToken: String? = null
 
+    private var simpleDialogFragment: SimpleDialogFragment? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_youtube_videos)
 
-        val viewModelFactory = YouTubeVideosViewModelFactory()
-        viewModel = ViewModelProvider(viewModelStore, viewModelFactory)[YouTubeVideosViewModel::class.java]
-        viewModel.playlistId = DEFAULT_PLAYLIST_ID
+        val channelId = intent.getStringExtra(EXTRA_NAME_CHANNEL_ID) ?: ""
 
-        viewModel.channelId = intent.getStringExtra(EXTRA_NAME_CHANNEL_ID)
+        if (channelId.isBlank()) {
+            showToast(getString(R.string.channel_not_found))
+            finish()
+        }
+
+        val viewModelFactory = YouTubeVideosViewModelFactory(application, channelId)
+        viewModel = ViewModelProvider(viewModelStore, viewModelFactory)[YouTubeVideosViewModel::class.java]
+
         timeAgoFormatConverter = TimeAgoFormatConverter(this)
 
         binding.frameLayoutPlaylist.setOnClickListener {
-            showPlaylistSelectionDialogFragment(viewModel.displayPlaylists)
+            simpleDialogFragment?.show(supportFragmentManager, simpleDialogFragment?.tag)
         }
 
         binding.textPlaylist.text = getString(R.string.all_videos)
 
         initRecyclerView()
 
-        viewModel.channelId?.let {
-            getSearchList(it, null)
-        } ?: run {
-            showToast(getString(R.string.channel_not_found))
-            finish()
-        }
+        /** LiveData */
+        viewModel.displayPlaylistModels.observe(this, { displayPlaylistModels ->
+            if (displayPlaylistModels.isEmpty()) {
+
+            } else {
+                initPlaylistSelectionDialogFragment(displayPlaylistModels)
+            }
+        })
+
+        viewModel.displayVideoModels.observe(this, { displayVideoModels ->
+            if (displayVideoModels.isNotEmpty()) {
+                videoAdapter.submitList(displayVideoModels as ArrayList<DisplayVideoModel>)
+            }
+        })
     }
 
-    private fun getSearchList(channelId: String, pageToken: String?) {
+    /*
+    private fun getSearchList(channelId: String, type: String, pageToken: String?) {
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
                 val searchListDeferred = YouTubeApi.searchListService().getSearchListAsync(
                     googleApiKey = getString(R.string.google_api_key),
                     channelId = channelId,
-                    pageToken = pageToken ?: ""
+                    pageToken = pageToken ?: "",
+                    type = type
                 )
                 try {
                     val searchList = searchListDeferred.await()
@@ -85,21 +104,9 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
         }
     }
 
-    private fun getVideosFromSearchList(searchList: SearchListModel) {
-        val videos = searchList.items.filter { it.id.kind == KIND_VIDEO }.map {
-            VideoModel (
-                id = it.id.videoId ?: "",
-                snippet = it.snippet,
-                statistics = null
-            )
-        }
+     */
 
-        coroutineScope.launch {
-            val displayVideos = videos.map { createDisplayVideoModel(it) } as ArrayList
-            videoAdapter.addAll(displayVideos)
-        }
-    }
-
+    /* TODO: check here.
     private fun getVideosByPlaylistId(playlistId: String, pageToken: String?) {
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
@@ -117,7 +124,7 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
                         VideoModel(
                             id = it.snippet.resourceId.videoId,
                             snippet = it.snippet,
-                            statistics = null
+                            // statistics = null
                         )
                     }
 
@@ -135,61 +142,7 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
         }
     }
 
-    private fun getPlaylistsFromSearchList(searchList: SearchListModel) {
-        val playlists = searchList.items.filter { it.id.kind == KIND_PLAYLIST }.map {
-            PlaylistModel(
-                id = it.id.playlistId ?: "",
-                snippet = it.snippet
-            )
-        }
-
-        val displayPlaylists = playlists.map {
-            createDisplayPlaylistModel(it)
-        } as ArrayList
-
-        viewModel.displayPlaylists = displayPlaylists
-    }
-
-    private fun createDisplayPlaylistModel(playlistModel: PlaylistModel): DisplayPlaylistModel {
-        var thumbnailUri = playlistModel.snippet.thumbnails.maxresModel?.url
-        if (thumbnailUri.isNullOrBlank())
-            thumbnailUri = playlistModel.snippet.thumbnails.standard?.url
-        if (thumbnailUri.isNullOrBlank())
-            thumbnailUri = playlistModel.snippet.thumbnails.highModel?.url
-        if (thumbnailUri.isNullOrBlank())
-            thumbnailUri = playlistModel.snippet.thumbnails.medium?.url
-        if (thumbnailUri.isNullOrBlank())
-            thumbnailUri = playlistModel.snippet.thumbnails.default.url
-
-        return DisplayPlaylistModel(
-            id = playlistModel.id,
-            title = playlistModel.snippet.title,
-            description = playlistModel.snippet.description,
-            thumbnailUri = thumbnailUri
-        )
-    }
-
-    private fun createDisplayVideoModel(video: VideoModel): DisplayVideoModel {
-        val id = video.id
-        var thumbnailUri = video.snippet.thumbnails.maxresModel?.url
-        if (thumbnailUri.isNullOrBlank())
-            thumbnailUri = video.snippet.thumbnails.standard?.url
-        if (thumbnailUri.isNullOrBlank())
-            thumbnailUri = video.snippet.thumbnails.highModel?.url
-        if (thumbnailUri.isNullOrBlank())
-            thumbnailUri = video.snippet.thumbnails.medium?.url
-        if (thumbnailUri.isNullOrBlank())
-            thumbnailUri = video.snippet.thumbnails.default.url
-        val title = video.snippet.title
-        val publishedAt = video.snippet.publishedAt
-
-        return DisplayVideoModel(
-            id = id,
-            thumbnailUri = thumbnailUri,
-            title = title,
-            timeAgo = timeAgoFormatConverter.covertToTimeAgoFormat(publishedAt) ?: ""
-        )
-    }
+     */
 
     private fun initRecyclerView() {
         videoAdapter = VideoAdapter()
@@ -208,14 +161,8 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
                 val lastCompletelyVisibleItemPosition = layoutManager.findLastCompletelyVisibleItemPosition()
 
                 if (lastCompletelyVisibleItemPosition >= itemCount.dec()) {
-                    if (viewModel.playlistId.isNullOrBlank()) {
-                        Timber.e(NullPointerException("playlistId is null."))
-                        showToast(getString(R.string.playlist_not_found))
-                        return
-                    }
-
+                    //  NextPageToken is updated when the page is loaded.
                     val pageToken = viewModel.playlistIdNextPageTokenMap[viewModel.playlistId]
-
                     if (pageToken.isNullOrBlank())
                         return
 
@@ -224,42 +171,42 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
 
                     previousPageToken = pageToken
 
-                    if (viewModel.playlistId == DEFAULT_PLAYLIST_ID)
-                        viewModel.channelId?.let { channelId ->
-                            getSearchList(channelId, pageToken)
-                        }
-                    else {
-                        viewModel.playlistId?.let { getVideosByPlaylistId(it, pageToken) }
-                    }
+                    showToast("AAA: $pageToken")
+
+                    if (viewModel.playlistId == SEARCH_LIST_NEXT_PAGE_TOKEN_KEY)
+                        viewModel.addDisplayVideoModelsByChannelId(viewModel.channelId, pageToken)
+                    else
+                        viewModel.addDisplayVideoModelsByPlaylistId(viewModel.playlistId, pageToken)
                 }
             }
         })
     }
 
-    private fun showPlaylistSelectionDialogFragment(playlists: List<DisplayPlaylistModel>) {
+    private fun initPlaylistSelectionDialogFragment(playlists: List<DisplayPlaylistModel>) {
         if (playlists.isNullOrEmpty()) {
             showToast(getString(R.string.playlist_not_found))
             return
         }
 
-        val simpleDialogFragment = SimpleDialogFragment()
-        simpleDialogFragment.setTitle(getString(R.string.playlist))
+        simpleDialogFragment?.clear()
+        simpleDialogFragment = SimpleDialogFragment()
+        simpleDialogFragment?.setTitle(getString(R.string.playlist))
 
         val items = playlists.map {
             SimpleItem (
-                id = it.id,
-                name = it.title,
-                imageUri = it.thumbnailUri
+                    id = it.id,
+                    name = it.title,
+                    imageUri = it.thumbnailUri
             )
         } as ArrayList<SimpleItem>
 
         items.add(0,  SimpleItem(
-            id = DEFAULT_PLAYLIST_ID,
+            id = SEARCH_LIST_NEXT_PAGE_TOKEN_KEY,
             name = getString(R.string.all_videos),
         ))
 
-        simpleDialogFragment.setItems(items)
-        simpleDialogFragment.setOnItemSelectedListener { dialogFragment, simpleItem ->
+        simpleDialogFragment?.setItems(items)
+        simpleDialogFragment?.setOnItemSelectedListener { dialogFragment, simpleItem ->
             dialogFragment.dismiss()
 
             val playlistId = simpleItem.id
@@ -270,17 +217,14 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
                 videoAdapter.clear()
                 binding.textPlaylist.text = simpleItem.name
 
-                if (playlistId == DEFAULT_PLAYLIST_ID)
-                    viewModel.channelId?.let {
-                        getSearchList(it, null)
-                    } ?: run {
-                        showToast(getString(R.string.channel_not_found))
-                    }
+                if (playlistId == SEARCH_LIST_NEXT_PAGE_TOKEN_KEY)
+                    viewModel.initDisplayDataModels() // TODO change only update video.
                 else
-                    getVideosByPlaylistId(simpleItem.id, null)
+                    viewModel.initDisplayVideoDataModelsByPlaylistId(simpleItem.id)
             }
         }
-        simpleDialogFragment.show(supportFragmentManager, simpleDialogFragment.tag)
+
+        simpleDialogFragment?.setOnScrollReachedBottomListener(this)
     }
 
     override fun play(displayVideoModel: DisplayVideoModel) {
@@ -303,7 +247,12 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
         const val EXTRA_NAME_VIDEO_ID = "com.duke.elliot.youtubediary.diary_writing.youtube.videos" +
                 ".youtube_videos_activity.extra_name_video_id"
 
-        private const val DEFAULT_PLAYLIST_ID = "com.duke.elliot.youtubediary.diary_writing.youtube.videos" +
-                ".youtube_videos_activity.default_playlist_id"
+        const val SEARCH_LIST_NEXT_PAGE_TOKEN_KEY = "com.duke.elliot.youtubediary.diary_writing.youtube.videos" +
+                ".youtube_videos_activity.search_list_next_page_token_key"
+    }
+
+    /** Load more playlists */
+    override fun onScrollReachedBottom(simpleItemAdapter: SimpleDialogFragment.SimpleItemAdapter) {
+        viewModel.addDisplayPlaylists(simpleItemAdapter)
     }
 }

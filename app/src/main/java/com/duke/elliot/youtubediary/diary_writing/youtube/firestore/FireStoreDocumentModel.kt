@@ -1,10 +1,10 @@
 package com.duke.elliot.youtubediary.diary_writing.youtube.firestore
 
-import com.duke.elliot.youtubediary.diary_writing.youtube.ChannelModel
+import com.duke.elliot.youtubediary.database.DisplayChannelModel
 
 data class UserModel(var uid: String,
                      var premium: Boolean,
-                     var youtubeChannels: MutableList<ChannelModel> = mutableListOf()
+                     var youtubeChannels: MutableList<DisplayChannelModel> = mutableListOf()
 ){
     companion object {
         const val FIELD_UID = "uid"

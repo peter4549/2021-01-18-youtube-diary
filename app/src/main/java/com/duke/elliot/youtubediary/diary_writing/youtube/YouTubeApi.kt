@@ -11,6 +11,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 
+const val SEARCH_LIST_TYPE_PLAYLIST = "playlist"
+const val SEARCH_LIST_TYPE_VIDEO = "video"
+const val SEARCH_LIST_TYPE_PLAYLIST_VIDEO = "playlist,video"
 
 object YouTubeApi {
     const val GOOGLE_AUTHORIZATION_SERVER_URL = "https://accounts.google.com/o/oauth2/token"
@@ -68,8 +71,9 @@ object YouTubeApi {
             @Query("key") googleApiKey: String,
             @Query("part") part: String = "snippet",
             @Query("channelId") channelId: String,
-            @Query("maxResults") maxResults: Int = 6, // TODO up to 30
-            @Query("pageToken") pageToken: String = ""
+            @Query("maxResults") maxResults: Int = 1, // TODO upto 10
+            @Query("pageToken") pageToken: String = "",
+            @Query("type") type: String
         ): Deferred<SearchListModel>
     }
 
@@ -102,7 +106,7 @@ object YouTubeApi {
             @Query("pageToken") pageToken: String = "",
             @Query("part") part: String = "snippet",
             @Query("channelId") channelId: String,
-            @Query("maxResults") maxResults: Int = 6 // TODO up to 30.
+            @Query("maxResults") maxResults: Int = 10
         ): Deferred<PlaylistsModel>
     }
 
@@ -113,7 +117,7 @@ object YouTubeApi {
             @Query("part") part: String = "snippet,contentDetails",
             @Query("pageToken") pageToken: String = "",
             @Query("playlistId") playlistId: String,
-            @Query("maxResults") maxResults: Int = 6 // TODO up to 30.
+            @Query("maxResults") maxResults: Int = 10
         ): Deferred<PlaylistItemsModel>
     }
 

@@ -90,6 +90,17 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth-ktx'
     implementation 'com.google.android.gms:play-services-auth:19.0.0'
 
-    // PageIndicatorView
-    implementation 'com.romandanylyk:pageindicatorview:1.0.3'
+    // CircleIndicator
+    implementation 'me.relex:circleindicator:2.1.4'
+
+    // ObservableScrollView
+    implementation 'com.github.ksoichiro:android-observablescrollview:1.6.0'
+
+    // Room
+    def room_version = "2.2.5"
+    implementation "androidx.room:room-runtime:$room_version"
+    implementation 'androidx.room:room-runtime:2.0.0'
+    kapt "androidx.room:room-compiler:$room_version"
+    kapt "androidx.room:room-ktx:$room_version"
+    kapt 'androidx.room:room-compiler:2.0.0'
 }

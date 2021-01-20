@@ -26,8 +26,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".diary_writing.DiaryWritingActivity"
-            android:theme="@style/Theme.DiaryWritingActivity"/>
+        <activity android:name=".diary_writing.DiaryWritingActivity" />
 
         <activity
             android:name=".diary_writing.youtube.channels.YouTubeChannelsActivity"

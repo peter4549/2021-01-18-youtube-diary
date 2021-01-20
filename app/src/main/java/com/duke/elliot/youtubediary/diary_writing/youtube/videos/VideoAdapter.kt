@@ -1,6 +1,5 @@
 package com.duke.elliot.youtubediary.diary_writing.youtube.videos
 
-import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,10 +8,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.youtubediary.R
+import com.duke.elliot.youtubediary.database.DisplayVideoModel
 import com.duke.elliot.youtubediary.databinding.ItemVideoBinding
-import kotlinx.android.parcel.Parcelize
 
-class VideoAdapter(private val videos: ArrayList<DisplayVideoModel> = arrayListOf()): RecyclerView.Adapter<VideoAdapter.ViewHolder>() {
+// TODO change to list adapter.
+class VideoAdapter(private val videos: ArrayList<DisplayVideoModel> = arrayListOf()):
+    RecyclerView.Adapter<VideoAdapter.ViewHolder>() {
 
     private var onMenuItemClickListener: OnMenuItemClickListener? = null
     fun setOnMenuItemClickListener (onMenuItemClickListener: OnMenuItemClickListener) {
@@ -48,10 +49,22 @@ class VideoAdapter(private val videos: ArrayList<DisplayVideoModel> = arrayListO
         }
     }
 
-    fun addAll(arrayList: ArrayList<DisplayVideoModel>) {
-        recyclerView?.scheduleLayoutAnimation()
-        videos.addAll(arrayList)
-        notifyItemRangeInserted(itemCount, arrayList.count())
+    fun submitList(arrayList: ArrayList<DisplayVideoModel>) {
+        if (arrayList.isNotEmpty()) {
+            recyclerView?.scheduleLayoutAnimation()
+            val currentItemCount = itemCount
+            var count = 0
+
+            for (video in arrayList) {
+                if (videos.contains(video))
+                    continue
+
+                videos.add(video)
+                ++count
+            }
+
+            notifyItemRangeInserted(currentItemCount, count)
+        }
     }
 
     fun clear() {
@@ -98,11 +111,3 @@ class VideoAdapter(private val videos: ArrayList<DisplayVideoModel> = arrayListO
         popupMenu.show()
     }
 }
-
-@Parcelize
-data class DisplayVideoModel(
-    val id: String,
-    val title: String,
-    val thumbnailUri: String?,
-    val timeAgo: String
-): Parcelable

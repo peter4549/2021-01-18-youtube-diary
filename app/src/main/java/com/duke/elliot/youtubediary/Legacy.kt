@@ -1,6 +1,5 @@
 package com.duke.elliot.youtubediary
 
-import com.duke.elliot.youtubediary.diary_writing.youtube.ChannelModel
 import com.duke.elliot.youtubediary.util.SimpleDialogFragment
 
 /*

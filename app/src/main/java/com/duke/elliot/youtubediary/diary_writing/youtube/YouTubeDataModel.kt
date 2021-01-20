@@ -1,5 +1,6 @@
 package com.duke.elliot.youtubediary.diary_writing.youtube
 
+const val KIND_CHANNEL = "youtube#channel"
 const val KIND_PLAYLIST = "youtube#playlist"
 const val KIND_VIDEO = "youtube#video"
 
@@ -11,12 +12,6 @@ data class AccessTokenModel(
 )
 
 data class ChannelsModel(val items: List<ItemModel>)
-
-data class ChannelModel(
-    val id: String,
-    val title: String,
-    val thumbnailUri: String
-)
 
 data class PlaylistItemsModel(val kind: String,
                               val etag: String,
@@ -35,15 +30,15 @@ data class PlaylistModel(
 
 data class SearchListModel(
     val kind: String,
-    val etag: String,
-    val regionCode: String,
+    /** val etag: String, */
+    /** val regionCode: String, */
     val nextPageToken: String?,
     val items: List<SearchResultModel>
 )
 
 data class SearchResultModel(
     val kind: String,
-    val etag: String,
+    /** val etag: String, */
     val id: SearchResultIdModel,
     val snippet: SnippetModel
 )
@@ -53,7 +48,6 @@ data class SearchResultIdModel(
     val channelId: String?,
     val playlistId: String?,
     val videoId: String?,
-
 )
 
 data class VideosModel(val nextPageToken: String,
@@ -61,14 +55,14 @@ data class VideosModel(val nextPageToken: String,
 
 data class VideoModel(val id: String,
                       val snippet: SnippetModel,
-                      val statistics: StatisticsModel?)
+                      /** val statistics: StatisticsModel? */ )
 
 data class ItemModel(val kind: String,
                      val etag: String,
                      val id: String,
                      val contentDetails: ContentDetailsModel,
                      val snippet: SnippetModel,
-                     val statistics: StatisticsModel)
+                     /** val statistics: StatisticsModel */ )
 
 data class ResourceIdModel(
     val kind: String,
@@ -93,26 +87,32 @@ data class ThumbnailsModel(val default: DefaultModel,
                            val maxresModel: MaxresModel?)
 
 data class DefaultModel(val url: String,
-                        val width: Int,
-                        val height: Int)
+        /** val width: Int, */
+        /** val height: Int */ )
 
 data class MediumModel(val url: String,
-                       val width: Int,
-                       val height: Int)
+        /** val width: Int, */
+        /** val height: Int */ )
 
-data class HighModel(val url: String,
-                     val width: Int,
-                     val height: Int)
+data class HighModel(
+        val url: String,
+        /** val width: Int, */
+        /** val height: Int */
+)
 
 // Playlists, Videos
-data class StandardModel(val url: String,
-                         val width: Int,
-                         val height: Int)
+data class StandardModel(
+        val url: String,
+        /** val width: Int, */
+        /** val height: Int */
+)
 
 @Suppress("SpellCheckingInspection")
-data class MaxresModel(val url: String,
-                       val width: Int,
-                       val height: Int)
+data class MaxresModel(
+        val url: String,
+        /** val width: Int, */
+        /** val height: Int */
+)
 
 data class StatisticsModel(val viewCount: String,
                            val likeCount: String,
