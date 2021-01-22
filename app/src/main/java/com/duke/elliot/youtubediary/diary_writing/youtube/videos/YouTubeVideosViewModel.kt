@@ -7,6 +7,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.duke.elliot.youtubediary.R
 import com.duke.elliot.youtubediary.database.*
+import com.duke.elliot.youtubediary.database.youtube.DisplayPlaylistModel
+import com.duke.elliot.youtubediary.database.youtube.DisplayVideoModel
+import com.duke.elliot.youtubediary.database.youtube.NextPageToken
+import com.duke.elliot.youtubediary.database.youtube.UpdatedAt
 import com.duke.elliot.youtubediary.diary_writing.youtube.*
 import com.duke.elliot.youtubediary.util.SimpleDialogFragment
 import com.duke.elliot.youtubediary.util.SimpleItem
@@ -17,287 +21,392 @@ import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import timber.log.Timber
 
+const val KIND_NEXT_PAGE_TOKEN_PLAYLIST = "com.duke.elliot.youtubediary.diary_writing.youtube.videos.kind_next_page_token_playlist"
+const val KIND_NEXT_PAGE_TOKEN_VIDEO = "com.duke.elliot.youtubediary.diary_writing.youtube.videos.kind_next_page_token_video"
+
+const val COLLECTION_CHANNEL = "com.duke.elliot.youtubediary.diary_writing.youtube.videos.collection_channel"
+const val COLLECTION_PLAYLIST = "com.duke.elliot.youtubediary.diary_writing.youtube.videos.collection_playlist"
+
+const val KIND_UPDATED_AT_CHANNEL = "com.duke.elliot.youtubediary.diary_writing.youtube.videos.kind_updated_at_channel"
+const val KIND_UPDATED_AT_PLAYLIST = "com.duke.elliot.youtubediary.diary_writing.youtube.videos.kind_updated_at_playlist"
+const val KIND_UPDATED_AT_VIDEO = "com.duke.elliot.youtubediary.diary_writing.youtube.videos.kind_updated_at_video"
+
 class YouTubeVideosViewModel(private val application: Application, val channelId: String): ViewModel() {
-    private val database = YouTubeDatabase.getInstance(application)
+    private val database = AppDatabase.getInstance(application)
     private val timeAgoFormatConverter = TimeAgoFormatConverter(application)
+    private val blank = ""
 
-    var playlistId: String = YouTubeVideosActivity.SEARCH_LIST_NEXT_PAGE_TOKEN_KEY  // Initial value.
-    var playlistNextPageToken: String? = null
-    val playlistIdNextPageTokenMap = mutableMapOf<String?, String?>()
+    var playlistId: String = YouTubeVideosActivity.DEFAULT_PLAYLIST_ID
+    var nextPageToken: String = blank
 
-    var displayPlaylistModels: MutableLiveData<MutableList<DisplayPlaylistModel>> = MutableLiveData()
-    var displayVideoModels: MutableLiveData<MutableList<DisplayVideoModel>> = MutableLiveData()
-
-    val blank = ""
+    /** LiveData */
+    var displayPlaylists: MutableLiveData<MutableList<DisplayPlaylistModel>> = MutableLiveData()
+    var displayVideos: MutableLiveData<MutableList<DisplayVideoModel>> = MutableLiveData()
 
     init {
-        initDisplayDataModels()
+        initDisplayData()
     }
 
-    fun initDisplayDataModels() {
+    /**
+     * collection: COLLECTION_CHANNEL
+     * nextPageToken: (channelId, KIND_NEXT_PAGE_TOKEN_PLAYLIST), (channelId, KIND_NEXT_PAGE_TOKEN_VIDEO)
+     * updatedAt: (channelId, KIND_UPDATED_AT_CHANNEL), (channelId, KIND_UPDATED_AT_PLAYLIST), (channelId, KIND_UPDATED_AT_VIDEO)
+     * add: false
+     */
+    fun initDisplayData() {
         viewModelScope.launch(Dispatchers.IO) {
-            val updatedAt = database.updatedAtDao().getUpdatedAt(channelId, KIND_CHANNEL)?.updatedAt
+            val updatedAt = database.updatedAtDao().getUpdatedAt(channelId, KIND_UPDATED_AT_CHANNEL)?.updatedAt
 
             if (updatedAt.isNotNull()) {
                 if (moreThan3HoursPassed(updatedAt)) {
                     /** YouTube Data API */
-                    val searchListTypePlaylist = getSearchList(channelId, SEARCH_LIST_TYPE_PLAYLIST, null)
-                    val searchListTypeVideo = getSearchList(channelId, SEARCH_LIST_TYPE_VIDEO, null)
+                    /** Playlist */
+                    requestSearchList(channelId, TYPE_PLAYLIST, null).let { searchList ->
+                        val nextPageToken = searchList?.nextPageToken ?: blank
+                        updateNextPageToken(channelId, KIND_NEXT_PAGE_TOKEN_PLAYLIST, nextPageToken)  // Playlist.
 
-                    playlistIdNextPageTokenMap[YouTubeVideosActivity.SEARCH_LIST_NEXT_PAGE_TOKEN_KEY] = searchListTypeVideo?.nextPageToken
-                    insertNextPageToken(channelId, KIND_CHANNEL, searchListTypeVideo?.nextPageToken ?: blank)
-                    searchListTypePlaylist?.nextPageToken?.let {
-                        insertPlaylistNextPageToken(it)
-                        playlistNextPageToken = it
+                        searchList?.filterKindPlaylist()?.map {
+                            createDisplayPlaylistModel(it, channelId)
+                        }?.let { displayPlaylists ->
+                            /** Insert into local database, Update UI. */
+                            updateDisplayPlaylists(displayPlaylists)
+                        }
+
+                        updateUpdatedAt(channelId, KIND_UPDATED_AT_PLAYLIST)
                     }
 
-                    val displayPlaylistModels = searchListTypePlaylist?.let {
-                        getDisplayPlaylistModelsFromSearchList(it)
+                    /** Video */
+                    requestSearchList(channelId, TYPE_VIDEO, null).let { searchList ->
+                        val nextPageToken = searchList?.nextPageToken ?: blank
+                        updateNextPageToken(channelId, KIND_NEXT_PAGE_TOKEN_VIDEO, nextPageToken) // Video.
+                        this@YouTubeVideosViewModel.nextPageToken = nextPageToken
+
+                        searchList?.filterKindVideo()?.map {
+                            createDisplayVideoModel(it, collection = COLLECTION_CHANNEL, channelId = channelId)
+                        }?.let { displayVideos ->
+                            /** Insert into local database, Update UI. */
+                            updateDisplayVideos(displayVideos, false)
+                        }
+
+                        updateUpdatedAt(channelId, KIND_UPDATED_AT_VIDEO)
                     }
 
-                    val displayVideoModels = searchListTypeVideo?.let {
-                        getDisplayVideoModelsFromSearchList(it)
-                    }
-
-                    updateYouTubeDatabase(displayPlaylistModels, displayVideoModels)
-                    updateUI(displayPlaylistModels, displayVideoModels)
-
-                    database.updatedAtDao().update(
-                        UpdatedAt(
-                            id = channelId,
-                            updatedAt = System.currentTimeMillis(),
-                            kind = KIND_CHANNEL
-                        )
-                    )
+                    updateUpdatedAt(channelId, KIND_UPDATED_AT_CHANNEL)
                 }  else {
                     /** Local Database */
-                    val displayPlaylists = database.displayPlaylistDao().getAll(channelId)
+                    val displayPlaylists = database.displayPlaylistDao().getAllByChannelId(channelId)
                     val displayVideos = database.displayVideoDao().getAllByChannelId(channelId)
-                    playlistIdNextPageTokenMap[YouTubeVideosActivity.SEARCH_LIST_NEXT_PAGE_TOKEN_KEY] = getNextPageTokenByChannelId()
-                    playlistNextPageToken = getPlaylistNextPageToken()?.nextPageToken
-                    updateUI(displayPlaylists, displayVideos)
+                    // Video.
+                    nextPageToken = database.nextPageTokenDao().get(channelId, KIND_NEXT_PAGE_TOKEN_VIDEO)?.nextPageToken ?: blank
+
+                    withContext(Dispatchers.Main) {
+                        this@YouTubeVideosViewModel.displayPlaylists.value = displayPlaylists
+                        this@YouTubeVideosViewModel.displayVideos.value = displayVideos
+                    }
                 }
             } else {
                 /** YouTube Data API */
-                val searchListTypePlaylist = getSearchList(channelId, SEARCH_LIST_TYPE_PLAYLIST, null)
-                val searchListTypeVideo = getSearchList(channelId, SEARCH_LIST_TYPE_VIDEO, null)
-                playlistIdNextPageTokenMap[YouTubeVideosActivity.SEARCH_LIST_NEXT_PAGE_TOKEN_KEY] = searchListTypeVideo?.nextPageToken
-                insertNextPageToken(channelId, KIND_CHANNEL, searchListTypeVideo?.nextPageToken ?: blank)
-                searchListTypePlaylist?.nextPageToken?.let {
-                    insertPlaylistNextPageToken(it)
-                    playlistNextPageToken = it
+                /** Playlist */
+                requestSearchList(channelId, TYPE_PLAYLIST, null).let { searchList ->
+                    val nextPageToken = searchList?.nextPageToken ?: blank
+                    updateNextPageToken(channelId, KIND_NEXT_PAGE_TOKEN_PLAYLIST, nextPageToken)
+
+                    searchList?.filterKindPlaylist()?.map {
+                        createDisplayPlaylistModel(it, channelId)
+                    }?.let { displayPlaylists ->
+                        /** Insert into local database, Update UI. */
+                        updateDisplayPlaylists(displayPlaylists)
+                    }
+
+                    insertUpdatedAt(channelId, KIND_UPDATED_AT_PLAYLIST)
                 }
 
-                val displayPlaylistModels = searchListTypePlaylist?.let {
-                    getDisplayPlaylistModelsFromSearchList(it)
-                }
-                val displayVideoModels = searchListTypeVideo?.let {
-                    getDisplayVideoModelsFromSearchList(it)
+                /** Video */
+                requestSearchList(channelId, TYPE_VIDEO, null).let { searchList ->
+                    val nextPageToken = searchList?.nextPageToken ?: blank
+                    updateNextPageToken(channelId, KIND_NEXT_PAGE_TOKEN_VIDEO, nextPageToken)
+                    this@YouTubeVideosViewModel.nextPageToken = nextPageToken
+
+                    searchList?.filterKindVideo()?.map {
+                        createDisplayVideoModel(it, collection = COLLECTION_CHANNEL, channelId = channelId)
+                    }?.let { displayVideos ->
+                        /** Insert into local database, Update UI. */
+                        updateDisplayVideos(displayVideos, false)
+                    }
+
+                    insertUpdatedAt(channelId, KIND_UPDATED_AT_VIDEO)
                 }
 
-                updateYouTubeDatabase(displayPlaylistModels, displayVideoModels)
-                updateUI(displayPlaylistModels, displayVideoModels)
-
-                database.updatedAtDao().insert(
-                    UpdatedAt(
-                        id = channelId,
-                        updatedAt = System.currentTimeMillis(),
-                        kind = KIND_CHANNEL
-                    )
-                )
+                insertUpdatedAt(channelId, KIND_UPDATED_AT_CHANNEL)
             }
         }
     }
 
-    fun initDisplayVideoDataModelsByPlaylistId(playlistId: String) {
+    /**
+     * collection: COLLECTION_PLAYLIST
+     * nextPageToken: (channelId, KIND_NEXT_PAGE_TOKEN_VIDEO)
+     * updatedAt: (playlistId, KIND_UPDATED_AT_VIDEO)
+     * add: false
+     */
+    fun initDisplayVideosByChannelId() {
         viewModelScope.launch(Dispatchers.IO) {
-            val updatedAt = database.updatedAtDao().getUpdatedAt(playlistId, KIND_PLAYLIST)?.updatedAt
+            val updatedAt = database.updatedAtDao().getUpdatedAt(channelId, KIND_UPDATED_AT_VIDEO)?.updatedAt
+
             if (updatedAt.isNotNull()) {
                 if (moreThan3HoursPassed(updatedAt)) {
                     /** YouTube Data API */
-                    // NextPageToken is also updated.
-                    val displayVideoModels = getVideosByPlaylistId(playlistId, null)
+                    /** Video */
+                    requestSearchList(channelId, TYPE_VIDEO, null).let { searchList ->
+                        val nextPageToken = searchList?.nextPageToken ?: blank
+                        updateNextPageToken(channelId, KIND_NEXT_PAGE_TOKEN_VIDEO, nextPageToken) // Video.
+                        this@YouTubeVideosViewModel.nextPageToken = nextPageToken
+
+                        searchList?.filterKindVideo()?.map {
+                            createDisplayVideoModel(it, collection = COLLECTION_CHANNEL, channelId = channelId)
+                        }?.let { displayVideos ->
+                            /** Insert into local database, Update UI. */
+                            updateDisplayVideos(displayVideos, false)
+                        }
+
+                        updateUpdatedAt(channelId, KIND_UPDATED_AT_VIDEO)
+                    }
+                }  else {
+                    /** Local Database */
+                    val displayVideos = database.displayVideoDao().getAllByChannelId(channelId)
+                    // Video.
+                    nextPageToken = database.nextPageTokenDao().get(channelId, KIND_NEXT_PAGE_TOKEN_VIDEO)?.nextPageToken ?: blank
+
+                    withContext(Dispatchers.Main) {
+                        this@YouTubeVideosViewModel.displayVideos.value = displayVideos
+                    }
+                }
+            } else {
+                /** YouTube Data API */
+                /** Video */
+                requestSearchList(channelId, TYPE_VIDEO, null).let { searchList ->
+                    val nextPageToken = searchList?.nextPageToken ?: blank
+                    updateNextPageToken(channelId, KIND_NEXT_PAGE_TOKEN_VIDEO, nextPageToken)
+                    this@YouTubeVideosViewModel.nextPageToken = nextPageToken
+
+                    searchList?.filterKindVideo()?.map {
+                        createDisplayVideoModel(it, collection = COLLECTION_CHANNEL, channelId = channelId)
+                    }?.let { displayVideos ->
+                        /** Insert into local database, Update UI. */
+                        updateDisplayVideos(displayVideos, false)
+                    }
+
+                    insertUpdatedAt(channelId, KIND_UPDATED_AT_VIDEO)
+                }
+            }
+        }
+    }
+
+    /**
+     * collection: COLLECTION_PLAYLIST
+     * nextPageToken: (playlistId, KIND_NEXT_PAGE_TOKEN_VIDEO)
+     * updatedAt: (playlistId, KIND_UPDATED_AT_VIDEO)
+     * add: false
+     */
+    fun initDisplayVideosByPlaylistId(playlistId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val updatedAt = database.updatedAtDao().getUpdatedAt(playlistId, KIND_UPDATED_AT_VIDEO)?.updatedAt
+
+            if (updatedAt.isNotNull()) {
+                if (moreThan3HoursPassed(updatedAt)) {
+                    /** YouTube Data API */
+                    val playlistItems = requestPlaylistItems(playlistId, null)
+
+                    /** Update nextPageToken. */
+                    nextPageToken = playlistItems?.nextPageToken ?: blank
+                    insertNextPageToken(playlistId, KIND_NEXT_PAGE_TOKEN_VIDEO, nextPageToken)  // Video.
+
+                    val displayVideoModels = playlistItems?.filterKindVideo()?.map {
+                        createDisplayVideoModel(it, collection = COLLECTION_PLAYLIST, playlistId = playlistId)
+                    }
 
                     if (displayVideoModels.isNullOrEmpty())
                         return@launch
 
-                    updateYouTubeDatabase(null, displayVideoModels)
-                    updateUI(null, displayVideoModels)
-
-                    database.updatedAtDao().update(
-                        UpdatedAt(
-                            id = playlistId,
-                            updatedAt = System.currentTimeMillis(),
-                            kind = KIND_PLAYLIST
-                        )
-                    )
+                    updateDisplayVideos(displayVideoModels, false)
+                    updateUpdatedAt(playlistId, KIND_UPDATED_AT_VIDEO)
                 }  else {
                     /** Local Database */
-                    val displayVideoModels = database.displayVideoDao().getAllByPlaylistId(playlistId)
-                    val pageToken = database.nextPageTokenDao()
-                        .getNextPageToken(playlistId, KIND_PLAYLIST)?.nextPageToken
-                    playlistIdNextPageTokenMap[playlistId] = pageToken
-                    updateUI(null, displayVideoModels)
+                    val displayVideos = database.displayVideoDao().getAllByPlaylistId(playlistId)
+                    nextPageToken = database.nextPageTokenDao()
+                        .get(playlistId, KIND_NEXT_PAGE_TOKEN_VIDEO)?.nextPageToken ?: blank
+
+                    withContext(Dispatchers.Main) {
+                        this@YouTubeVideosViewModel.displayVideos.value = displayVideos
+                    }
                 }
             } else {
                 /** YouTube Data API */
-                // NextPageToken is also updated.
-                val displayVideoModels = getVideosByPlaylistId(playlistId, null)
+                val playlistItems = requestPlaylistItems(playlistId, null)
 
-                if (displayVideoModels.isNullOrEmpty())
+                /** Update nextPageToken. */
+                nextPageToken = playlistItems?.nextPageToken ?: blank
+                insertNextPageToken(playlistId, KIND_NEXT_PAGE_TOKEN_VIDEO, nextPageToken)
+
+                val displayVideos = playlistItems?.filterKindVideo()?.map {
+                    createDisplayVideoModel(it, collection = COLLECTION_PLAYLIST, playlistId = playlistId)
+                }
+
+                if (displayVideos.isNullOrEmpty())
                     return@launch
 
-                updateYouTubeDatabase(null, displayVideoModels)
-                updateUI(null, displayVideoModels)
-
-                database.updatedAtDao().insert(
-                    UpdatedAt(
-                        id = playlistId,
-                        updatedAt = System.currentTimeMillis(),
-                        kind = KIND_PLAYLIST
-                    )
-                )
+                updateDisplayVideos(displayVideos, false)
+                insertUpdatedAt(playlistId, KIND_UPDATED_AT_VIDEO)
             }
         }
     }
 
-    private fun updateYouTubeDatabase (
-        displayPlaylistModels: List<DisplayPlaylistModel>?,
-        displayVideoModels: List<DisplayVideoModel>?
-    ) {
-        displayPlaylistModels?.let { database.displayPlaylistDao().insertAll(it) }
-        displayVideoModels?.let { database.displayVideoDao().insertAll(it) }
-    }
+    private suspend fun updateDisplayPlaylists(displayPlaylists: List<DisplayPlaylistModel>) {
+        database.displayPlaylistDao().insertAll(displayPlaylists)
 
-    private suspend fun updateUI (
-        displayPlaylistModels: List<DisplayPlaylistModel>?,
-        displayVideoModels: List<DisplayVideoModel>?
-    ) {
         withContext(Dispatchers.Main) {
-            displayPlaylistModels?.let {
-                this@YouTubeVideosViewModel.displayPlaylistModels.value =
-                    displayPlaylistModels as MutableList<DisplayPlaylistModel>
-            }
-
-            displayVideoModels?.let {
-                this@YouTubeVideosViewModel.displayVideoModels.value =
-                    displayVideoModels as MutableList<DisplayVideoModel>
-            }
+            this@YouTubeVideosViewModel.displayPlaylists.value =
+                displayPlaylists as MutableList<DisplayPlaylistModel>
         }
     }
 
-    private suspend fun getSearchList(channelId: String, type: String, pageToken: String?): SearchListModel? =
-        withContext(Dispatchers.IO){
-            try {
-                val searchListDeferred = YouTubeApi.searchListService().getSearchListAsync(
-                    googleApiKey = application.getString(R.string.google_api_key),
-                    channelId = channelId,
-                    pageToken = pageToken ?: "",
-                    type = type
-                )
+    private suspend fun updateDisplayVideos(displayVideos: List<DisplayVideoModel>, add: Boolean) {
+        database.displayVideoDao().insertAll(displayVideos)
 
-                searchListDeferred.await()
-            } catch (e: HttpException) {
-                withContext(Dispatchers.Main) {
-                    showToast(application.getString(R.string.video_not_found))
-                }
-                null
-            }
+        withContext(Dispatchers.Main) {
+            if (add) {
+                // Call on scroll.
+                val value = mutableListOf<DisplayVideoModel>()
+                this@YouTubeVideosViewModel.displayVideos.value?.let { value.addAll(it) }
+                value.addAll(displayVideos)
+                this@YouTubeVideosViewModel.displayVideos.value = value
+            } else
+                this@YouTubeVideosViewModel.displayVideos.value =
+                    displayVideos as MutableList<DisplayVideoModel>
         }
+    }
 
-    private fun getDisplayVideoModelsFromSearchList(searchList: SearchListModel): List<DisplayVideoModel> {
-        val videos = searchList.items.filter { it.id.kind == KIND_VIDEO }.map {
-            VideoModel (
-                id = it.id.videoId ?: "",
-                snippet = it.snippet,
-                // statistics = null  // unused.
+    private suspend fun requestSearchList(channelId: String, type: String, pageToken: String?):
+            SearchListModel? = withContext(Dispatchers.IO) {
+        try {
+            val searchListDeferred = YouTubeApi.searchListService().getSearchListAsync(
+                googleApiKey = application.getString(R.string.google_api_key),
+                channelId = channelId,
+                pageToken = pageToken ?: blank,
+                type = type
             )
-        }
 
-        return videos.map {
-            createDisplayVideoModel(it, kind = KIND_CHANNEL, channelId = channelId)
-        }
-    }
+            searchListDeferred.await()
+        } catch (e: HttpException) {
+            withContext(Dispatchers.Main) {
+                showToast(application.getString(R.string.video_not_found))
+            }
 
-    private fun getDisplayPlaylistModelsFromSearchList(searchList: SearchListModel): List<DisplayPlaylistModel> {
-        val playlists = searchList.items.filter { it.id.kind == KIND_PLAYLIST }.map {
-            PlaylistModel(
-                id = it.id.playlistId ?: "",
-                snippet = it.snippet
-            )
-        }
-
-        return playlists.map {
-            createDisplayPlaylistModel(it, channelId)
+            null
         }
     }
 
-    fun addDisplayVideoModelsByChannelId(channelId: String, nextPageToken: String) {
+    /**
+     * collection: COLLECTION_CHANNEL
+     * nextPageToken: (channelId, KIND_NEXT_PAGE_TOKEN_VIDEO)
+     * updatedAt: (channelId, KIND_UPDATED_AT_VIDEO)
+     * add: true
+     */
+    fun addDisplayVideosByChannelId(channelId: String, nextPageToken: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val searchList = getSearchList(channelId, SEARCH_LIST_TYPE_PLAYLIST_VIDEO, nextPageToken)
+            val searchList = requestSearchList(channelId, TYPE_VIDEO, nextPageToken)
                 ?: return@launch
 
-            playlistIdNextPageTokenMap[YouTubeVideosActivity.SEARCH_LIST_NEXT_PAGE_TOKEN_KEY] = searchList.nextPageToken
-            insertNextPageToken(channelId, KIND_CHANNEL, searchList.nextPageToken ?: blank)
+            this@YouTubeVideosViewModel.nextPageToken = searchList.nextPageToken ?: blank
+            updateNextPageToken(channelId, KIND_NEXT_PAGE_TOKEN_VIDEO, this@YouTubeVideosViewModel.nextPageToken)
 
-            val displayVideoModels = getDisplayVideoModelsFromSearchList(searchList)
+            val displayVideoModels = searchList.filterKindVideo().map {
+                createDisplayVideoModel(it, collection = COLLECTION_CHANNEL, channelId = channelId)
+            }
 
-            updateYouTubeDatabase(null, displayVideoModels)
-            updateUI(null, displayVideoModels)
-
-            database.updatedAtDao().update(
-                UpdatedAt(
-                    id = channelId,
-                    updatedAt = System.currentTimeMillis(),
-                    kind = KIND_CHANNEL
-                )
-            )
+            /** Insert into local database, Update UI. */
+            updateDisplayVideos(displayVideoModels, true)
+            updateUpdatedAt(channelId, KIND_UPDATED_AT_VIDEO)
         }
     }
 
-    fun addDisplayVideoModelsByPlaylistId(playlistId: String, nextPageToken: String) {
+    /**
+     * Call on scroll.
+     * collection: COLLECTION_PLAYLIST
+     * nextPageToken: (playlistId, KIND_NEXT_PAGE_TOKEN_VIDEO)
+     * updatedAt: (playlistId, KIND_UPDATED_AT_VIDEO)
+     * add: true
+     */
+    fun addDisplayVideosByPlaylistId(playlistId: String, nextPageToken: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            // NextPageToken is also updated in getVideosByPlaylistId.
-            val displayVideoModels = getVideosByPlaylistId(playlistId, nextPageToken)
+            val playlistItems = requestPlaylistItems(playlistId, nextPageToken)
 
-            updateYouTubeDatabase(null, displayVideoModels)
-            updateUI(null, displayVideoModels)
+            this@YouTubeVideosViewModel.nextPageToken = playlistItems?.nextPageToken ?: blank
+            updateNextPageToken(playlistId, KIND_NEXT_PAGE_TOKEN_VIDEO, this@YouTubeVideosViewModel.nextPageToken)
 
-            database.updatedAtDao().update(
-                UpdatedAt(
-                    id = playlistId,
-                    updatedAt = System.currentTimeMillis(),
-                    kind = KIND_PLAYLIST
-                )
-            )
+            val displayVideos = playlistItems?.filterKindVideo()?.map {
+                createDisplayVideoModel(it, collection = COLLECTION_PLAYLIST, playlistId = playlistId)
+            }
+
+            this@YouTubeVideosViewModel.displayVideos
+
+            displayVideos?.let { updateDisplayVideos(it, true) }
+            updateUpdatedAt(playlistId, KIND_UPDATED_AT_VIDEO)
         }
     }
 
-    private suspend fun getVideosByPlaylistId(playlistId: String, pageToken: String?):
-            List<DisplayVideoModel>? = withContext(Dispatchers.IO) {
+    /**
+     * nextPageToken: (channelId, KIND_NEXT_PAGE_TOKEN_PLAYLIST)
+     * updatedAt: (channelId, KIND_NEXT_PAGE_TOKEN_PLAYLIST)
+     */
+    fun addDisplayPlaylists(simpleItemAdapter: SimpleDialogFragment.SimpleItemAdapter) {
+        viewModelScope.launch(Dispatchers.IO) {
+            /** Playlist */
+            val nextPageToken = database.nextPageTokenDao()
+                .get(channelId, KIND_NEXT_PAGE_TOKEN_PLAYLIST)?.nextPageToken
+
+            // Blank should also be checked.
+            if (nextPageToken.isNullOrBlank())
+                return@launch
+
+            val searchList = requestSearchList(channelId, TYPE_PLAYLIST, nextPageToken)
+            val displayPlaylists = searchList?.filterKindPlaylist()?.map {
+                createDisplayPlaylistModel(it, channelId)
+            }
+
+            /** Insert into local database. */
+            displayPlaylists?.let { database.displayPlaylistDao().insertAll(it) }
+
+            this@YouTubeVideosViewModel.nextPageToken = searchList?.nextPageToken ?: blank
+
+            // Use insert.
+            insertNextPageToken(channelId, KIND_NEXT_PAGE_TOKEN_PLAYLIST, this@YouTubeVideosViewModel.nextPageToken)
+
+            // Use insert.
+            insertUpdatedAt(channelId, KIND_UPDATED_AT_PLAYLIST)
+
+            val simpleItems = displayPlaylists?.map {
+                SimpleItem(
+                    id = it.id,
+                    name = it.title,
+                    imageUri = it.thumbnailUri
+                )
+            } ?: return@launch
+
+            withContext(Dispatchers.Main) {
+                simpleItemAdapter.addItems(simpleItems as ArrayList<SimpleItem>)
+            }
+        }
+    }
+
+    private suspend fun requestPlaylistItems(playlistId: String, pageToken: String?):
+            PlaylistItemsModel? = withContext(Dispatchers.IO) {
         val playlistItemsDeferred = YouTubeApi.playlistItemsService().getPlaylistItemsAsync(
             googleApiKey = application.getString(R.string.google_api_key),
             playlistId = playlistId,
-            pageToken = pageToken ?: ""
+            pageToken = pageToken ?: blank
         )
         try {
-            val playlistItems = playlistItemsDeferred.await()
-            val nextPageToken = playlistItems.nextPageToken
-            // Update next page token.
-            playlistIdNextPageTokenMap[playlistId] = nextPageToken
-            insertNextPageToken(playlistId, KIND_PLAYLIST, nextPageToken ?: blank)
-
-            val videos = playlistItems.items.filter { it.snippet.resourceId.kind == KIND_VIDEO }.map {
-                VideoModel(
-                    id = it.snippet.resourceId.videoId,
-                    snippet = it.snippet,
-                    // statistics = null
-                )
-            }
-
-            return@withContext videos.map {
-                createDisplayVideoModel(it, kind = KIND_PLAYLIST, playlistId = playlistId)
-            }
+            return@withContext playlistItemsDeferred.await()
         } catch (e: Exception) {
             Timber.e(e, "Failed to get videos.")
             return@withContext null
@@ -306,10 +415,10 @@ class YouTubeVideosViewModel(private val application: Application, val channelId
 
     private fun moreThan3HoursPassed(updatedAt: Long?): Boolean {
         val hours = (System.currentTimeMillis() - (updatedAt ?: 0L)) / (1000 * 60 * 60).toLong()
-        return hours >= 1L // TODO: up to 3, 1 is for test.
+        return hours >= 3L
     }
 
-    fun insertNextPageToken(id: String, kind: String, nextPageToken: String) {
+    private fun insertNextPageToken(id: String, kind: String, nextPageToken: String) {
         database.nextPageTokenDao().insert(
             NextPageToken(
                 id = id,
@@ -319,18 +428,32 @@ class YouTubeVideosViewModel(private val application: Application, val channelId
         )
     }
 
-    private fun getNextPageTokenByChannelId(): String? {
-        return database.nextPageTokenDao().getNextPageToken(
-            id = channelId,
-            kind = KIND_CHANNEL
-        )?.nextPageToken
+    private fun updateNextPageToken(id: String, kind: String, nextPageToken: String) {
+        database.nextPageTokenDao().insert(
+            NextPageToken(
+                id = id,
+                kind = kind,
+                nextPageToken = nextPageToken
+            )
+        )
     }
 
-    fun insertPlaylistNextPageToken(nextPageToken: String) {
-        database.playlistNextPageTokenDao().insert(
-            PlaylistNextPageToken(
-                channelId = channelId,
-                nextPageToken = nextPageToken
+    private fun insertUpdatedAt(id: String, kind: String) {
+        database.updatedAtDao().insert(
+            UpdatedAt(
+                id = id,
+                kind = kind,
+                updatedAt = System.currentTimeMillis(),
+            )
+        )
+    }
+
+    private fun updateUpdatedAt(id: String, kind: String) {
+        database.updatedAtDao().update(
+            UpdatedAt(
+                id = id,
+                kind = kind,
+                updatedAt = System.currentTimeMillis(),
             )
         )
     }
@@ -339,38 +462,9 @@ class YouTubeVideosViewModel(private val application: Application, val channelId
         Toast.makeText(application, text, duration).show()
     }
 
-    fun addDisplayPlaylists(simpleItemAdapter: SimpleDialogFragment.SimpleItemAdapter) {
-        viewModelScope.launch(Dispatchers.IO) {
-            if (playlistNextPageToken.isNullOrBlank())
-                return@launch
-
-            val searchListTypePlaylist = getSearchList(channelId, SEARCH_LIST_TYPE_PLAYLIST, playlistNextPageToken) ?: return@launch
-            val nextPageToken = searchListTypePlaylist.nextPageToken
-            nextPageToken?.let { insertPlaylistNextPageToken(it) }
-            playlistNextPageToken = nextPageToken
-
-            val displayPlaylistModels = getDisplayPlaylistModelsFromSearchList(searchListTypePlaylist)
-            updateYouTubeDatabase(displayPlaylistModels, null)
-
-            val simpleItems = displayPlaylistModels.map {
-                SimpleItem(
-                    id = it.id,
-                    name = it.title,
-                    imageUri = it.thumbnailUri
-                )
-            } as ArrayList
-
-            withContext(Dispatchers.Main) {
-                simpleItemAdapter.addItems(simpleItems)
-            }
-        }
-    }
-
-    private fun getPlaylistNextPageToken() = database.playlistNextPageTokenDao().getPlaylistNextPageToken(channelId)
-
     private fun createDisplayVideoModel(
         video: VideoModel,
-        kind: String,
+        collection: String,
         channelId: String? = null,
         playlistId: String? = null
     ): DisplayVideoModel {
@@ -395,26 +489,26 @@ class YouTubeVideosViewModel(private val application: Application, val channelId
             timeAgo = timeAgoFormatConverter.covertToTimeAgoFormat(publishedAt) ?: "",
             channelId = channelId,
             playlistId = playlistId,
-            kind = kind
+            collection = collection
         )
     }
 
-    private fun createDisplayPlaylistModel(playlistModel: PlaylistModel, channelId: String): DisplayPlaylistModel {
-        var thumbnailUri = playlistModel.snippet.thumbnails.maxresModel?.url
+    private fun createDisplayPlaylistModel(playlist: PlaylistModel, channelId: String): DisplayPlaylistModel {
+        var thumbnailUri = playlist.snippet.thumbnails.maxresModel?.url
         if (thumbnailUri.isNullOrBlank())
-            thumbnailUri = playlistModel.snippet.thumbnails.standard?.url
+            thumbnailUri = playlist.snippet.thumbnails.standard?.url
         if (thumbnailUri.isNullOrBlank())
-            thumbnailUri = playlistModel.snippet.thumbnails.highModel?.url
+            thumbnailUri = playlist.snippet.thumbnails.highModel?.url
         if (thumbnailUri.isNullOrBlank())
-            thumbnailUri = playlistModel.snippet.thumbnails.medium?.url
+            thumbnailUri = playlist.snippet.thumbnails.medium?.url
         if (thumbnailUri.isNullOrBlank())
-            thumbnailUri = playlistModel.snippet.thumbnails.default.url
+            thumbnailUri = playlist.snippet.thumbnails.default.url
 
         return DisplayPlaylistModel(
-            id = playlistModel.id,
+            id = playlist.id,
             channelId = channelId,
-            title = playlistModel.snippet.title,
-            description = playlistModel.snippet.description,
+            title = playlist.snippet.title,
+            description = playlist.snippet.description,
             thumbnailUri = thumbnailUri
         )
     }

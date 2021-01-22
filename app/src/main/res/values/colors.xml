@@ -9,5 +9,105 @@
     <color name="white">#FFFFFFFF</color>
     <color name="baby_blue">#89CFF0</color>
 
+    <color name="outer_space">#414A4C</color>
+    <color name="ghost_white">#F8F8FF</color>
+    <color name="dark_grey">#A9A9A9</color>
+    <color name="light_grey">#D3D3D3</color>
+    <color name="youtube_red">#FF0000</color>
+
+    <color name="default_theme">@color/youtube_red</color>
+
     <color name="progress_dialog_background">#80263238</color>
+
+    <color name="activity_background">@color/ghost_white</color>
+    <color name="fragment_background">@color/ghost_white</color>
+    <color name="toolbar_background">@color/default_theme</color>
+
+    <color name="icon_enabled">@color/dark_grey</color>
+    <color name="icon_disabled">@color/light_grey</color>
+
+    <color name="text_enabled">@color/outer_space</color>
+    <color name="text_disabled">@color/light_grey</color>
+
+    <color name="error">#E25822</color>  <!-- Flame -->
+
+    <!-- Material Colors 400 -->
+    <color name="colorRed400">#ef5350</color>
+    <color name="colorPink400">#ec407a</color>
+    <color name="colorPurple400">#ab47bc</color>
+    <color name="colorDeepPurple400">#7e57c2</color>
+    <color name="colorIndigo400">#5c6bc0</color>
+    <color name="colorBlue400">#42a5f5</color>
+    <color name="colorLightBlue400">#29b6f6</color>
+    <color name="colorCyan400">#26c6da</color>
+    <color name="colorTeal400">#26a69a</color>
+    <color name="colorGreen400">#66bb6a</color>
+    <color name="colorLightGreen400">#9ccc65</color>
+    <color name="colorLime400">#d4e157</color>
+    <color name="colorYellow400">#ffee58</color>
+    <color name="colorAmber400">#ffca28</color>
+    <color name="colorOrange400">#ffa726</color>
+    <color name="colorDeepOrange400">#ff7043</color>
+    <color name="colorBrown400">#8d6e63</color>
+    <color name="colorGrey400">#bdbdbd</color>
+    <color name="colorBlueGrey400">#78909c</color>
+
+    <!-- Material Colors 200 -->
+    <color name="colorRed200">#ef9a9a</color>
+    <color name="colorPink200">#f48fb1</color>
+    <color name="colorPurple200">#ce93d8</color>
+    <color name="colorDeepPurple200">#b39ddb</color>
+    <color name="colorIndigo200">#9fa8da</color>
+    <color name="colorBlue200">#90caf9</color>
+    <color name="colorLightBlue200">#81d4fa</color>
+    <color name="colorCyan200">#80deea</color>
+    <color name="colorTeal200">#80cbc4</color>
+    <color name="colorGreen200">#a5d6a7</color>
+    <color name="colorLightGreen200">#c5e1a5</color>
+    <color name="colorLime200">#e6ee9c</color>
+    <color name="colorYellow200">#ffeb3b</color>
+    <color name="colorAmber200">#ffe082</color>
+    <color name="colorOrange200">#ffcc80</color>
+    <color name="colorDeepOrange200">#ffab91</color>
+    <color name="colorBrown200">#bcaaa4</color>
+    <color name="colorBlueGrey200">#b0bec5</color>
+
+    <array name="theme_colors">
+        <item>@color/colorRed200</item>
+        <item>@color/colorRed400</item>
+        <item>@color/colorPink200</item>
+        <item>@color/colorPink400</item>
+        <item>@color/colorPurple200</item>
+        <item>@color/colorPurple400</item>
+        <item>@color/colorDeepPurple200</item>
+        <item>@color/colorDeepPurple400</item>
+        <item>@color/colorIndigo200</item>
+        <item>@color/colorIndigo400</item>
+        <item>@color/colorBlue200</item>
+        <item>@color/colorBlue400</item>
+        <item>@color/colorLightBlue200</item>
+        <item>@color/colorLightBlue400</item>
+        <item>@color/colorCyan200</item>
+        <item>@color/colorCyan400</item>
+        <item>@color/colorTeal200</item>
+        <item>@color/colorTeal400</item>
+        <item>@color/colorGreen200</item>
+        <item>@color/colorGreen400</item>
+        <item>@color/colorLightGreen200</item>
+        <item>@color/colorLightGreen400</item>
+        <item>@color/colorLime200</item>
+        <item>@color/colorLime400</item>
+        <item>@color/colorYellow200</item>
+        <item>@color/colorYellow400</item>
+        <item>@color/colorAmber200</item>
+        <item>@color/colorAmber400</item>
+        <item>@color/colorOrange200</item>
+        <item>@color/colorOrange400</item>
+        <item>@color/colorDeepOrange200</item>
+        <item>@color/colorDeepOrange400</item>
+        <item>@color/colorBrown200</item>
+        <item>@color/colorBrown400</item>
+        <item>@color/colorBlueGrey200</item>
+        <item>@color/colorBlueGrey400</item>
+    </array>
 </resources>

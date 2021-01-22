@@ -4,16 +4,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.youtubediary.R
-import com.duke.elliot.youtubediary.database.DisplayVideoModel
+import com.duke.elliot.youtubediary.database.youtube.DisplayVideoModel
 import com.duke.elliot.youtubediary.databinding.ItemVideoBinding
 
-// TODO change to list adapter.
-class VideoAdapter(private val videos: ArrayList<DisplayVideoModel> = arrayListOf()):
-    RecyclerView.Adapter<VideoAdapter.ViewHolder>() {
+class VideoAdapter: ListAdapter<DisplayVideoModel, RecyclerView.ViewHolder>(VideoDiffCallback()) {
 
     private var onMenuItemClickListener: OnMenuItemClickListener? = null
     fun setOnMenuItemClickListener (onMenuItemClickListener: OnMenuItemClickListener) {
@@ -49,30 +49,6 @@ class VideoAdapter(private val videos: ArrayList<DisplayVideoModel> = arrayListO
         }
     }
 
-    fun submitList(arrayList: ArrayList<DisplayVideoModel>) {
-        if (arrayList.isNotEmpty()) {
-            recyclerView?.scheduleLayoutAnimation()
-            val currentItemCount = itemCount
-            var count = 0
-
-            for (video in arrayList) {
-                if (videos.contains(video))
-                    continue
-
-                videos.add(video)
-                ++count
-            }
-
-            notifyItemRangeInserted(currentItemCount, count)
-        }
-    }
-
-    fun clear() {
-        recyclerView?.scheduleLayoutAnimation()
-        videos.clear()
-        notifyDataSetChanged()
-    }
-
     private fun from(parent: ViewGroup): ViewHolder {
         val binding = ItemVideoBinding.inflate(
             LayoutInflater.from(parent.context),
@@ -85,11 +61,10 @@ class VideoAdapter(private val videos: ArrayList<DisplayVideoModel> = arrayListO
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = from(parent)
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(videos[position])
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        if (holder is ViewHolder)
+            holder.bind(getItem(position))
     }
-
-    override fun getItemCount(): Int = videos.count()
 
     private fun showPopupMenu(view: View, video: DisplayVideoModel) {
         val popupMenu = PopupMenu(view.context, view)
@@ -109,5 +84,17 @@ class VideoAdapter(private val videos: ArrayList<DisplayVideoModel> = arrayListO
         }
 
         popupMenu.show()
+    }
+
+
+}
+
+class VideoDiffCallback: DiffUtil.ItemCallback<DisplayVideoModel>() {
+    override fun areItemsTheSame(oldItem: DisplayVideoModel, newItem: DisplayVideoModel): Boolean {
+        return oldItem.id == newItem.id
+    }
+
+    override fun areContentsTheSame(oldItem: DisplayVideoModel, newItem: DisplayVideoModel): Boolean {
+        return oldItem == newItem
     }
 }

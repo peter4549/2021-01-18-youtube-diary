@@ -3,6 +3,7 @@ package com.duke.elliot.youtubediary.base
 import android.content.DialogInterface
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -89,6 +90,16 @@ open class BaseActivity: AppCompatActivity() {
 
     protected fun dismissProgressDialog() {
         progressDialog?.dismiss()
+    }
+
+    protected fun actionBarHeight(): Int {
+        val typedValue = TypedValue()
+        var actionBarHeight = 0
+
+        if (theme.resolveAttribute(android.R.attr.actionBarSize, typedValue, true))
+            actionBarHeight = TypedValue.complexToDimensionPixelSize(typedValue.data, resources.displayMetrics)
+
+        return actionBarHeight
     }
 
     protected fun showAlertDialog(

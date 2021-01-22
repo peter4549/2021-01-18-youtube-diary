@@ -1,8 +1,6 @@
 package com.duke.elliot.youtubediary.diary_writing.youtube.firestore
 
-import com.duke.elliot.youtubediary.base.BaseActivity
-import com.duke.elliot.youtubediary.database.DisplayChannelModel
-import com.duke.elliot.youtubediary.diary_writing.youtube.channels.YouTubeChannelsActivity
+import com.duke.elliot.youtubediary.database.youtube.DisplayChannelModel
 import com.duke.elliot.youtubediary.main.MainApplication
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore

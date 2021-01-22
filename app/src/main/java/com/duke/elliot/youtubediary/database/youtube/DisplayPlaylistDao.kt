@@ -1,6 +1,5 @@
-package com.duke.elliot.youtubediary.database
+package com.duke.elliot.youtubediary.database.youtube
 
-import androidx.lifecycle.MutableLiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -9,7 +8,7 @@ import androidx.room.Query
 @Dao
 interface DisplayPlaylistDao {
     @Query("SELECT * FROM display_playlist_model WHERE channelId = :channelId")
-    fun getAll(channelId: String): MutableList<DisplayPlaylistModel>
+    fun getAllByChannelId(channelId: String): MutableList<DisplayPlaylistModel>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(displayPlaylistModels: List<DisplayPlaylistModel>)

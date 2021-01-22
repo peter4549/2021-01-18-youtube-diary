@@ -8,8 +8,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.duke.elliot.youtubediary.R
 import com.duke.elliot.youtubediary.base.BaseActivity
-import com.duke.elliot.youtubediary.database.DisplayPlaylistModel
-import com.duke.elliot.youtubediary.database.DisplayVideoModel
+import com.duke.elliot.youtubediary.database.youtube.DisplayPlaylistModel
+import com.duke.elliot.youtubediary.database.youtube.DisplayVideoModel
 import com.duke.elliot.youtubediary.databinding.ActivityYoutubeVideosBinding
 import com.duke.elliot.youtubediary.diary_writing.youtube.*
 import com.duke.elliot.youtubediary.diary_writing.youtube.channels.YouTubeChannelsActivity.Companion.EXTRA_NAME_CHANNEL_ID
@@ -62,87 +62,16 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
         initRecyclerView()
 
         /** LiveData */
-        viewModel.displayPlaylistModels.observe(this, { displayPlaylistModels ->
-            if (displayPlaylistModels.isEmpty()) {
-
-            } else {
-                initPlaylistSelectionDialogFragment(displayPlaylistModels)
-            }
+        viewModel.displayPlaylists.observe(this, { displayPlaylistModels ->
+            initPlaylistSelectionDialogFragment(displayPlaylistModels) // TODO 비이었는 경우 처리. 유저에게 알리기.
         })
 
-        viewModel.displayVideoModels.observe(this, { displayVideoModels ->
-            if (displayVideoModels.isNotEmpty()) {
-                videoAdapter.submitList(displayVideoModels as ArrayList<DisplayVideoModel>)
+        viewModel.displayVideos.observe(this, { displayVideos ->
+            if (displayVideos.isNotEmpty()) {
+                videoAdapter.submitList(displayVideos) // TODO 비어있는 경우 유저에게 알리기. 락 풀리면 테스트.
             }
         })
     }
-
-    /*
-    private fun getSearchList(channelId: String, type: String, pageToken: String?) {
-        coroutineScope.launch {
-            withContext(Dispatchers.IO) {
-                val searchListDeferred = YouTubeApi.searchListService().getSearchListAsync(
-                    googleApiKey = getString(R.string.google_api_key),
-                    channelId = channelId,
-                    pageToken = pageToken ?: "",
-                    type = type
-                )
-                try {
-                    val searchList = searchListDeferred.await()
-                    val nextPageToken = searchList.nextPageToken
-                    viewModel.playlistIdNextPageTokenMap[DEFAULT_PLAYLIST_ID] = nextPageToken
-                    getVideosFromSearchList(searchList)
-
-                    if (uninitialized) {
-                        getPlaylistsFromSearchList(searchList)
-                        uninitialized = false
-                    }
-                } catch (e: Exception) {
-                    Timber.e(e, "Failed to get search list.")
-                }
-            }
-        }
-    }
-
-     */
-
-    /* TODO: check here.
-    private fun getVideosByPlaylistId(playlistId: String, pageToken: String?) {
-        coroutineScope.launch {
-            withContext(Dispatchers.IO) {
-                val playlistItemsDeferred = YouTubeApi.playlistItemsService().getPlaylistItemsAsync(
-                    googleApiKey = getString(R.string.google_api_key),
-                    playlistId = playlistId,
-                    pageToken = pageToken ?: ""
-                )
-                try {
-                    val playlistItems = playlistItemsDeferred.await()
-                    val nextPageToken = playlistItems.nextPageToken
-                    viewModel.playlistIdNextPageTokenMap[playlistId] = nextPageToken
-
-                    val videos = playlistItems.items.filter { it.snippet.resourceId.kind == KIND_VIDEO }.map {
-                        VideoModel(
-                            id = it.snippet.resourceId.videoId,
-                            snippet = it.snippet,
-                            // statistics = null
-                        )
-                    }
-
-                    val displayVideos = videos.map {
-                        createDisplayVideoModel(it)
-                    } as ArrayList
-
-                    coroutineScope.launch {
-                        videoAdapter.addAll(displayVideos)
-                    }
-                } catch (e: Exception) {
-                    Timber.e(e, "Failed to get videos.")
-                }
-            }
-        }
-    }
-
-     */
 
     private fun initRecyclerView() {
         videoAdapter = VideoAdapter()
@@ -161,9 +90,9 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
                 val lastCompletelyVisibleItemPosition = layoutManager.findLastCompletelyVisibleItemPosition()
 
                 if (lastCompletelyVisibleItemPosition >= itemCount.dec()) {
-                    //  NextPageToken is updated when the page is loaded.
-                    val pageToken = viewModel.playlistIdNextPageTokenMap[viewModel.playlistId]
-                    if (pageToken.isNullOrBlank())
+                    val pageToken = viewModel.nextPageToken
+
+                    if (pageToken.isBlank())
                         return
 
                     if (previousPageToken == pageToken)
@@ -173,10 +102,10 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
 
                     showToast("AAA: $pageToken")
 
-                    if (viewModel.playlistId == SEARCH_LIST_NEXT_PAGE_TOKEN_KEY)
-                        viewModel.addDisplayVideoModelsByChannelId(viewModel.channelId, pageToken)
+                    if (viewModel.playlistId == DEFAULT_PLAYLIST_ID)
+                        viewModel.addDisplayVideosByChannelId(viewModel.channelId, pageToken)
                     else
-                        viewModel.addDisplayVideoModelsByPlaylistId(viewModel.playlistId, pageToken)
+                        viewModel.addDisplayVideosByPlaylistId(viewModel.playlistId, pageToken)
                 }
             }
         })
@@ -201,7 +130,7 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
         } as ArrayList<SimpleItem>
 
         items.add(0,  SimpleItem(
-            id = SEARCH_LIST_NEXT_PAGE_TOKEN_KEY,
+            id = DEFAULT_PLAYLIST_ID,
             name = getString(R.string.all_videos),
         ))
 
@@ -214,13 +143,12 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
             if (viewModel.playlistId != playlistId) {
                 viewModel.playlistId = playlistId
                 previousPageToken = null
-                videoAdapter.clear()
                 binding.textPlaylist.text = simpleItem.name
 
-                if (playlistId == SEARCH_LIST_NEXT_PAGE_TOKEN_KEY)
-                    viewModel.initDisplayDataModels() // TODO change only update video.
+                if (playlistId == DEFAULT_PLAYLIST_ID)
+                    viewModel.initDisplayVideosByChannelId()
                 else
-                    viewModel.initDisplayVideoDataModelsByPlaylistId(simpleItem.id)
+                    viewModel.initDisplayVideosByPlaylistId(simpleItem.id)
             }
         }
 
@@ -246,12 +174,11 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
                 ".youtube_videos_activity.extra_name_display_video_model"
         const val EXTRA_NAME_VIDEO_ID = "com.duke.elliot.youtubediary.diary_writing.youtube.videos" +
                 ".youtube_videos_activity.extra_name_video_id"
-
-        const val SEARCH_LIST_NEXT_PAGE_TOKEN_KEY = "com.duke.elliot.youtubediary.diary_writing.youtube.videos" +
-                ".youtube_videos_activity.search_list_next_page_token_key"
+        const val DEFAULT_PLAYLIST_ID = "com.duke.elliot.youtubediary.diary_writing.youtube.videos" +
+                ".youtube_videos_activity.default_playlist_id"
     }
 
-    /** Load more playlists */
+    /** Load more playlists. */
     override fun onScrollReachedBottom(simpleItemAdapter: SimpleDialogFragment.SimpleItemAdapter) {
         viewModel.addDisplayPlaylists(simpleItemAdapter)
     }

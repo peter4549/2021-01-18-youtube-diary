@@ -1,7 +1,7 @@
 package com.duke.elliot.youtubediary.diary_writing.youtube.channels
 
 import androidx.lifecycle.ViewModel
-import com.duke.elliot.youtubediary.database.DisplayChannelModel
+import com.duke.elliot.youtubediary.database.youtube.DisplayChannelModel
 import com.duke.elliot.youtubediary.diary_writing.youtube.firestore.FireStoreHelper
 import com.duke.elliot.youtubediary.main.MainApplication
 

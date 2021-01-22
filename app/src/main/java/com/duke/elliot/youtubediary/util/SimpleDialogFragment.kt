@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SimpleAdapter
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -84,9 +83,17 @@ class SimpleDialogFragment: DialogFragment() {
     inner class SimpleItemAdapter: RecyclerView.Adapter<SimpleItemAdapter.ViewHolder>() {
         inner class ViewHolder(val view: View): RecyclerView.ViewHolder(view)
 
-        fun addItems(simpleItems: ArrayList<SimpleItem>) {
-            val positionStart = itemCount.dec()
-            this@SimpleDialogFragment.simpleItems.addAll(simpleItems)
+        fun addItems(simpleItems: ArrayList<SimpleItem>, allowRedundancy: Boolean = false) {
+            val positionStart = itemCount
+
+            if (allowRedundancy)
+                this@SimpleDialogFragment.simpleItems.addAll(simpleItems)
+            else
+                for (simpleItem in simpleItems) {
+                    if (this@SimpleDialogFragment.simpleItems.notContain(simpleItem))
+                        this@SimpleDialogFragment.simpleItems.add(simpleItem)
+                }
+
             notifyItemRangeInserted(positionStart, simpleItems.count())
         }
 
@@ -122,6 +129,8 @@ class SimpleDialogFragment: DialogFragment() {
 
         override fun getItemCount(): Int = simpleItems.count()
     }
+
+    private fun ArrayList<SimpleItem>.notContain(element: SimpleItem) = !contains(element)
 }
 
 data class SimpleItem(

@@ -11,9 +11,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 
-const val SEARCH_LIST_TYPE_PLAYLIST = "playlist"
-const val SEARCH_LIST_TYPE_VIDEO = "video"
-const val SEARCH_LIST_TYPE_PLAYLIST_VIDEO = "playlist,video"
+const val TYPE_PLAYLIST = "playlist"
+const val TYPE_VIDEO = "video"
 
 object YouTubeApi {
     const val GOOGLE_AUTHORIZATION_SERVER_URL = "https://accounts.google.com/o/oauth2/token"
@@ -71,7 +70,7 @@ object YouTubeApi {
             @Query("key") googleApiKey: String,
             @Query("part") part: String = "snippet",
             @Query("channelId") channelId: String,
-            @Query("maxResults") maxResults: Int = 1, // TODO upto 10
+            @Query("maxResults") maxResults: Int = 10,
             @Query("pageToken") pageToken: String = "",
             @Query("type") type: String
         ): Deferred<SearchListModel>
@@ -96,7 +95,6 @@ object YouTubeApi {
                 .build()
         }
     }
-
      */
 
     interface PlaylistsService {

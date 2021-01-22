@@ -2,6 +2,7 @@
     <string name="app_name">YouTubeDiary</string>
 
     <string name="cancel">취소</string>
+    <string name="ok">확인</string>
 
     <!-- DiaryWritingActivity -->
     <string name="add_youtube_video">유튜브 동영상 추가</string>
@@ -15,7 +16,6 @@
     <string name="click_on_login_page_dialog">로그인 페이지에서 \n체크 버튼을 클릭하세요.</string>
     <string name="click_on_login_page_toast">로그인 페이지에서 클릭하세요.</string>
     <string name="authentication_failed">인증에 실패했습니다.</string>
-
 
     <!-- SignInActivity -->
     <string name="sign_in">로그인</string>
@@ -47,4 +47,14 @@
 
     <!-- YouTubePlayerActivity -->
     <string name="video_cannot_be_played">비디오를 재생할 수 없습니다.</string>
+
+    <!-- EditFolderDialogFragment -->
+    <string name="folder">폴더</string>
+    <string name="add_folder">폴더 추가</string>
+    <string name="no_folder">폴더가 없습니다.</string>
+    <string name="select_folder_color">폴더 색상 선택</string>
+    <string name="select_folder_color_message">폴더 색상을 선택하세요.</string>
+    <string name="folder_name">폴더 이름</string>
+    <string name="enter_the_folder_name">폴더 이름을 입력하세요.</string>
+    <string name="edit_folder">폴더 수정</string>
 </resources>

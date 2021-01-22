@@ -22,7 +22,7 @@ class DiariesFragment: BaseFragment() {
 
         binding.floatingActionButtonAdd.setOnClickListener {
             val intent = Intent(requireContext(), DiaryWritingActivity::class.java)
-            intent.putExtra(DiaryWritingActivity.EXTRA_NAME_DIARY_WRITING_ACTIVITY, DiaryWritingActivity.CREATE)
+            intent.putExtra(DiaryWritingActivity.EXTRA_NAME_DIARY_WRITING_ACTIVITY, DiaryWritingActivity.MODE_CREATE)
             startActivityForResult(intent, REQUEST_CODE)
         }
 

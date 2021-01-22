@@ -12,8 +12,8 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.duke.elliot.youtubediary.R
 import com.duke.elliot.youtubediary.base.BaseActivity
-import com.duke.elliot.youtubediary.database.DisplayChannelModel
-import com.duke.elliot.youtubediary.database.DisplayVideoModel
+import com.duke.elliot.youtubediary.database.youtube.DisplayChannelModel
+import com.duke.elliot.youtubediary.database.youtube.DisplayVideoModel
 import com.duke.elliot.youtubediary.databinding.ActivityYoutubeChannelsBinding
 import com.duke.elliot.youtubediary.diary_writing.youtube.ItemModel
 import com.duke.elliot.youtubediary.diary_writing.youtube.YouTubeApi

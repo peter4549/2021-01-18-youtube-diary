@@ -4,12 +4,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.youtubediary.R
-import com.duke.elliot.youtubediary.database.DisplayVideoModel
+import com.duke.elliot.youtubediary.database.youtube.DisplayVideoModel
 import kotlinx.android.synthetic.main.item_view_pager.view.*
 
 class ViewPagerAdapter: RecyclerView.Adapter<ViewPagerAdapter.ViewHolder>() {
@@ -18,12 +17,19 @@ class ViewPagerAdapter: RecyclerView.Adapter<ViewPagerAdapter.ViewHolder>() {
 
     private val items = arrayListOf<DisplayVideoModel>()
 
-    fun addItem(item: DisplayVideoModel) {
-        items.add(0, item)
+    fun add(position: Int = 0, item: DisplayVideoModel) {
+        items.add(position, item)
         println("AaAAA: IIII: $item")
         println("AaAAA: IIIILLLLL: $itemCount")
-        notifyDataSetChanged()
-        //notifyItemInserted(itemCount.dec())
+        // notifyDataSetChanged() test, this is work.
+        notifyItemInserted(itemCount.dec())
+    }
+
+    fun addAll(items: List<DisplayVideoModel>) {
+        val positionStart = itemCount
+        this.items.addAll(items)
+        // notifyDataSetChanged() test, this is work.
+        notifyItemRangeInserted(positionStart, items.count())
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

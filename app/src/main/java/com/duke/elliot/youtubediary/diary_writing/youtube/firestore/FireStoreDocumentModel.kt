@@ -1,6 +1,6 @@
 package com.duke.elliot.youtubediary.diary_writing.youtube.firestore
 
-import com.duke.elliot.youtubediary.database.DisplayChannelModel
+import com.duke.elliot.youtubediary.database.youtube.DisplayChannelModel
 
 data class UserModel(var uid: String,
                      var premium: Boolean,

@@ -1,4 +1,4 @@
-package com.duke.elliot.youtubediary.database
+package com.duke.elliot.youtubediary.database.youtube
 
 import android.os.Parcelable
 import androidx.room.Entity
@@ -29,25 +29,19 @@ data class DisplayVideoModel(
         val timeAgo: String,
         val channelId: String?,
         val playlistId: String?,
-        val kind: String,
+        val collection: String,
 ): Parcelable
 
-@Entity(tableName = "next_page_token")
+@Entity(tableName = "next_page_token", primaryKeys = ["id", "kind"])
 data class NextPageToken(
-        @PrimaryKey val id: String,
+        val id: String,
         val nextPageToken: String,
         val kind: String
 )
 
-@Entity(tableName = "updated_at")
+@Entity(tableName = "updated_at", primaryKeys = ["id", "kind"])
 data class UpdatedAt(
-        @PrimaryKey val id: String,
+        val id: String,
         val updatedAt: Long,
         val kind: String
-)
-
-@Entity(tableName = "playlist_next_page_token")
-data class PlaylistNextPageToken(
-        @PrimaryKey val channelId: String,
-        val nextPageToken: String
 )

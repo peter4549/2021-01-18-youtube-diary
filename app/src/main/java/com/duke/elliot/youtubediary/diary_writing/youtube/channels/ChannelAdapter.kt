@@ -9,7 +9,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.youtubediary.R
-import com.duke.elliot.youtubediary.database.DisplayChannelModel
+import com.duke.elliot.youtubediary.database.youtube.DisplayChannelModel
 import com.duke.elliot.youtubediary.databinding.ItemChannelBinding
 
 class ChannelAdapter: ListAdapter<DisplayChannelModel, RecyclerView.ViewHolder>(ChannelDiffCallback()) {

@@ -3,6 +3,7 @@
     <dimen name="spacing_smallest">4dp</dimen>
     <dimen name="spacing_small">8dp</dimen>
     <dimen name="spacing_medium">16dp</dimen>
+    <dimen name="spacing_medium_large">24dp</dimen>
     <dimen name="spacing_large">32dp</dimen>
     <dimen name="spacing_largest">64dp</dimen>
 
@@ -10,11 +11,15 @@
     <dimen name="text_size_small">14sp</dimen>
     <dimen name="text_size_medium">16sp</dimen>
     <dimen name="text_size_large">18sp</dimen>
+    <dimen name="text_size_largest">20sp</dimen>
 
     <dimen name="progress_bar_height">72dp</dimen>
 
-    <dimen name="simple_item_width">56dp</dimen>
-    <dimen name="simple_item_height">56dp</dimen>
+    <dimen name="simple_item_image_width">56dp</dimen>
+    <dimen name="simple_item_image_height">56dp</dimen>
+
+    <dimen name="search_list_item_image_width">48dp</dimen>
+    <dimen name="search_list_item_image_height">48dp</dimen>
 
     <dimen name="parallax_image_height">240dp</dimen>
 

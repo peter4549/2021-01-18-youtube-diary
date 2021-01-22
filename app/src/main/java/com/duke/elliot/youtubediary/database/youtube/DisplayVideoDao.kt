@@ -1,6 +1,5 @@
-package com.duke.elliot.youtubediary.database
+package com.duke.elliot.youtubediary.database.youtube
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy

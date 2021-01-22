@@ -13,10 +13,22 @@ data class AccessTokenModel(
 
 data class ChannelsModel(val items: List<ItemModel>)
 
-data class PlaylistItemsModel(val kind: String,
-                              val etag: String,
-                              val nextPageToken: String?,
-                              val items: List<ItemModel>)
+data class PlaylistItemsModel (
+    val kind: String,
+    val etag: String,
+    val nextPageToken: String?,
+    val items: List<ItemModel>
+) {
+    fun filterKindVideo() = items.filter {
+        it.snippet.resourceId.kind == KIND_VIDEO
+    }.map {
+        VideoModel(
+            id = it.snippet.resourceId.videoId,
+            snippet = it.snippet,
+            // statistics = null  // Unused.
+        )
+    }
+}
 
 data class PlaylistsModel(val kind: String,
                           val etag: String,
@@ -34,7 +46,27 @@ data class SearchListModel(
     /** val regionCode: String, */
     val nextPageToken: String?,
     val items: List<SearchResultModel>
-)
+) {
+
+    fun filterKindPlaylist() = items.filter {
+        it.id.kind == KIND_PLAYLIST
+    }.map {
+        PlaylistModel(
+            id = it.id.playlistId ?: "",
+            snippet = it.snippet
+        )
+    }
+
+    fun filterKindVideo() = items.filter {
+        it.id.kind == KIND_VIDEO
+    }.map {
+        VideoModel (
+            id = it.id.videoId ?: "",
+            snippet = it.snippet,
+            // statistics = null  // Unused.
+        )
+    }
+}
 
 data class SearchResultModel(
     val kind: String,
@@ -53,9 +85,11 @@ data class SearchResultIdModel(
 data class VideosModel(val nextPageToken: String,
                        val items: List<VideoModel>)
 
-data class VideoModel(val id: String,
-                      val snippet: SnippetModel,
-                      /** val statistics: StatisticsModel? */ )
+data class VideoModel(
+    val id: String,
+    val snippet: SnippetModel,
+    /** val statistics: StatisticsModel? */
+)
 
 data class ItemModel(val kind: String,
                      val etag: String,

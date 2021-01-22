@@ -1,11 +1,11 @@
-package com.duke.elliot.youtubediary.database
+package com.duke.elliot.youtubediary.database.youtube
 
 import androidx.room.*
 
 @Dao
 interface NextPageTokenDao {
     @Query("SELECT * FROM next_page_token WHERE id = :id AND kind = :kind LIMIT 1")
-    fun getNextPageToken(id: String, kind: String): NextPageToken?
+    fun get(id: String, kind: String): NextPageToken?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(nextPageToken: NextPageToken)
