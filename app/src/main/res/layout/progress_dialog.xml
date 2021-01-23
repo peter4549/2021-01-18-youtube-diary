@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/progress_dialog_background"
-    android:padding="16dp">
+    android:padding="@dimen/spacing_xlarge">
 
     <ProgressBar
         android:layout_width="match_parent"

@@ -5,7 +5,8 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/fragment_background">
 
         <LinearLayout
             android:id="@+id/linearLayout_title"
@@ -18,7 +19,7 @@
                 android:id="@+id/text_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/text_size_large"
+                android:textSize="@dimen/text_size_dialog_title"
                 android:textStyle="bold"
                 android:paddingBottom="@dimen/spacing_medium"
                 android:paddingEnd="@dimen/spacing_medium_large"
@@ -46,11 +47,12 @@
 
                 <ImageView
                     android:id="@+id/image_add"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
                     android:layout_marginTop="@dimen/spacing_smallest"
                     android:layout_marginEnd="@dimen/spacing_small"
-                    android:layout_marginBottom="@dimen/spacing_smallest"
+                    android:layout_marginBottom="4.5dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
                     app:srcCompat="@drawable/ic_sharp_add_24"
                     tools:ignore="ContentDescription" />
             </LinearLayout>

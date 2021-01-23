@@ -160,7 +160,7 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
                 val builder = CustomTabsIntent.Builder()
                 customTabsSession?.let { builder.setSession(it) }
                 val icon = BitmapFactory.decodeResource(resources, R.drawable.ic_checkmark_48px)
-                val title = "완료." // TODO: change to res.
+                val title = getString(R.string.ok)
 
                 builder.setActionButton(icon, title, createPendingIntent(), true)
                 builder.setStartAnimations(
@@ -277,16 +277,11 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
         when(requestCode) {
             REQUEST_CODE_SIGN_IN_ACTIVITY -> {
                 if (resultCode == RESULT_OK) {
-                    /** Test code */
-                    showToast("success")
                     val uid = MainApplication.getFirebaseAuthInstance().currentUser?.uid
                     uid?.let {
                         viewModel.registerFireStoreHelper(uid, this)
                     }
-
-                    // Load channel info. from user.
-                } else
-                    showToast("failed")
+                }
             }
             REQUEST_CODE_YOUTUBE_VIDEOS_ACTIVITY -> {
                 if (resultCode == RESULT_OK) {

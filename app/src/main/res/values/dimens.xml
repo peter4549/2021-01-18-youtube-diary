@@ -5,6 +5,7 @@
     <dimen name="spacing_medium">16dp</dimen>
     <dimen name="spacing_medium_large">24dp</dimen>
     <dimen name="spacing_large">32dp</dimen>
+    <dimen name="spacing_xlarge">48dp</dimen>
     <dimen name="spacing_largest">64dp</dimen>
 
     <dimen name="text_size_smallest">12sp</dimen>
@@ -12,6 +13,9 @@
     <dimen name="text_size_medium">16sp</dimen>
     <dimen name="text_size_large">18sp</dimen>
     <dimen name="text_size_largest">20sp</dimen>
+
+    <dimen name="text_size_dialog_title">@dimen/text_size_large</dimen>
+    <dimen name="text_size_dialog_message">@dimen/text_size_medium</dimen>
 
     <dimen name="progress_bar_height">72dp</dimen>
 

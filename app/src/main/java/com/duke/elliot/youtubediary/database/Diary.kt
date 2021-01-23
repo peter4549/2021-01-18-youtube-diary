@@ -12,6 +12,15 @@ data class Diary (
     @PrimaryKey val id: Long = 0L,
     var updatedAt: Long,
     var content: String,
-    var folder: String,
+    var folder: Folder?,
     var youtubeVideos: List<DisplayVideoModel>
-) : Parcelable
+) : Parcelable {
+
+    fun deepCopy() = Diary(
+        id = this.id,
+        updatedAt = this.updatedAt,
+        content = this.content,
+        folder = this.folder,
+        youtubeVideos = youtubeVideos.toList()
+    )
+}

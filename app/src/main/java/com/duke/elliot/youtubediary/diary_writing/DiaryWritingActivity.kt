@@ -1,11 +1,11 @@
 package com.duke.elliot.youtubediary.diary_writing
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.RelativeLayout
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
@@ -16,25 +16,35 @@ import com.duke.elliot.youtubediary.database.Folder
 import com.duke.elliot.youtubediary.database.youtube.DisplayVideoModel
 import com.duke.elliot.youtubediary.databinding.ActivityDiaryWritingBinding
 import com.duke.elliot.youtubediary.diary_writing.youtube.channels.YouTubeChannelsActivity
+import com.duke.elliot.youtubediary.diary_writing.youtube.player.YouTubePlayerActivity
+import com.duke.elliot.youtubediary.diary_writing.youtube.videos.YouTubeVideosActivity
 import com.duke.elliot.youtubediary.fluid_keyboard_resize.FluidContentResize
 import com.duke.elliot.youtubediary.folder.EditFolderDialogFragment
 import com.duke.elliot.youtubediary.folder.FolderSearchBarListDialogFragment
+import com.duke.elliot.youtubediary.util.SearchBarListDialogFragment
 import com.duke.elliot.youtubediary.util.toDateFormat
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks
 import com.github.ksoichiro.android.observablescrollview.ScrollState
 import com.github.ksoichiro.android.observablescrollview.ScrollUtils
+import kotlinx.android.synthetic.main.activity_diary_writing.*
+import kotlinx.coroutines.*
+import timber.log.Timber
 
-class DiaryWritingActivity: BaseActivity(), ObservableScrollViewCallbacks {
+class DiaryWritingActivity: BaseActivity(), ObservableScrollViewCallbacks,
+    SearchBarListDialogFragment.FragmentContainer, ViewPagerAdapter.OnItemClickListener {
 
     private lateinit var binding: ActivityDiaryWritingBinding
     private lateinit var viewPagerAdapter: ViewPagerAdapter
     private lateinit var viewModel: DiaryWritingViewModel
 
+    private val job = Job()
+    private val coroutineScope = CoroutineScope(Dispatchers.Main + job)
+
     private var mode = MODE_CREATE
     private var parallaxImageHeight = 0
     private var toolbarHeight = 0
 
-    private val displayVideoModels = mutableListOf<DisplayVideoModel>()
+    private lateinit var folderSearchBarListDialog: FolderSearchBarListDialogFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +69,14 @@ class DiaryWritingActivity: BaseActivity(), ObservableScrollViewCallbacks {
                 addAll(viewModel.youtubeVideos)
             }
         }
+
+        viewPagerAdapter.setOnItemClickListener(this)
+
         binding.viewPager.adapter = viewPagerAdapter
+        binding.wormDotsIndicator.setViewPager2(binding.viewPager)
+        binding.imageViewPagerOptions.setOnClickListener {
+            showPopupMenu(it)
+        }
 
         setSupportActionBar(binding.toolbar)
         setOptionsMenu(R.menu.menu_diary_writing_activity)
@@ -83,10 +100,10 @@ class DiaryWritingActivity: BaseActivity(), ObservableScrollViewCallbacks {
 
         binding.editTextContent.setText(viewModel.content)
 
-        binding.textFolder.text = viewModel.folder
+        binding.textFolder.text = viewModel.folder?.name
 
         binding.imageFolder.setOnClickListener {
-            showFolderSearchBarListDialog(it.context)
+            showFolderSearchBarListDialog()
         }
     }
 
@@ -96,12 +113,11 @@ class DiaryWritingActivity: BaseActivity(), ObservableScrollViewCallbacks {
             return false
 
         val content = binding.editTextContent.text.toString()
-        val folder = binding.textFolder.text.toString()
 
         if (content != viewModel.content)
             return true
 
-        if (folder != viewModel.folder)
+        if (viewModel.originalDiary?.folder != viewModel.folder)
             return true
 
         return false
@@ -132,7 +148,13 @@ class DiaryWritingActivity: BaseActivity(), ObservableScrollViewCallbacks {
                         if (viewModel.youtubeVideos.notContain(it)) {
                             viewModel.addVideo(it)
                             viewPagerAdapter.add(item = it)
-                        }
+                            coroutineScope.launch {
+                                delay(100L)
+                                binding.viewPager.setCurrentItem(0, false)
+                                binding.wormDotsIndicator.setViewPager2(binding.viewPager)
+                            }
+                        } else
+                            showToast(getString(R.string.this_video_has_already_been_added))
                     }
                 }
             }
@@ -156,15 +178,14 @@ class DiaryWritingActivity: BaseActivity(), ObservableScrollViewCallbacks {
 
     }
 
-    private fun showFolderSearchBarListDialog(context: Context) {
-        val folderSearchBarListDialog = FolderSearchBarListDialogFragment(context).apply {
-            setImageAddCallback {
-                showEditFolderDialog(EditFolderDialogFragment.MODE_ADD, null)
+    private fun showFolderSearchBarListDialog() {
+        folderSearchBarListDialog = FolderSearchBarListDialogFragment()
+
+        if (::folderSearchBarListDialog.isInitialized)
+            folderSearchBarListDialog.let {
+                it.moreOptionsMenuRes = R.menu.menu_folder_search_bar_list_dialog_fragment
+                it.show(supportFragmentManager, it.tag)
             }
-        }
-        folderSearchBarListDialog.let {
-            it.show(supportFragmentManager, it.tag)
-        }
     }
 
     private fun showEditFolderDialog(mode: Int, folder: Folder?) {
@@ -172,6 +193,60 @@ class DiaryWritingActivity: BaseActivity(), ObservableScrollViewCallbacks {
         editFolderDialog.let {
             it.show(supportFragmentManager, it.tag)
         }
+    }
+
+    private fun showPopupMenu(view: View) {
+        val popupMenu = PopupMenu(this, view)
+        popupMenu.inflate(R.menu.menu_view_pager)
+        popupMenu.setOnMenuItemClickListener { item ->
+            when(item.itemId) {
+                R.id.item_delete -> {
+                    val video = viewPagerAdapter.getItem(binding.viewPager.currentItem)
+                    viewModel.youtubeVideos.remove(video)
+                    viewPagerAdapter.remove(video)
+                    binding.wormDotsIndicator.setViewPager2(binding.viewPager)
+                }
+            }
+
+            true
+        }
+
+        popupMenu.show()
+    }
+
+    /** FolderSearchBarListDialogFragment */
+    override fun <Folder> onRequestListener(): SearchBarListDialogFragment.OnClickListener<Folder> =
+        object: SearchBarListDialogFragment.OnClickListener<Folder> {
+            override fun onListItemClick(listItem: Folder) {
+                if (listItem is com.duke.elliot.youtubediary.database.Folder) {
+                    if (viewModel.folder != listItem) {
+                        viewModel.folder = listItem
+                        binding.textFolder.text = listItem.name
+                    }
+                }
+
+                // TODO: save시 데이터 베이스 업로드 할 것. 아직 확정단계가 아님 여기는.
+            }
+
+            override fun onAddClick() {
+                showEditFolderDialog(EditFolderDialogFragment.MODE_ADD, null)
+            }
+
+            override fun moreOptionsClick(itemId: Int, listItem: Folder) {
+                if (listItem is com.duke.elliot.youtubediary.database.Folder) {
+                    when (itemId) {
+                        R.id.item_edit -> showEditFolderDialog(EditFolderDialogFragment.MODE_EDIT, listItem)
+                        R.id.item_delete -> viewModel.deleteFolder(listItem)
+                    }
+                }
+            }
+        }
+
+    override fun onClick(displayVideo: DisplayVideoModel) {
+        val videoId = displayVideo.id
+        val intent = Intent(this, YouTubePlayerActivity::class.java)
+        intent.putExtra(YouTubeVideosActivity.EXTRA_NAME_VIDEO_ID, videoId)
+        startActivity(intent)
     }
 
     companion object {

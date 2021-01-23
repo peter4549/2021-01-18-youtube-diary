@@ -3,9 +3,12 @@
 
     <string name="cancel">취소</string>
     <string name="ok">확인</string>
+    <string name="edit">편집</string>
+    <string name="delete">삭제</string>
 
     <!-- DiaryWritingActivity -->
     <string name="add_youtube_video">유튜브 동영상 추가</string>
+    <string name="this_video_has_already_been_added">이미 추가된 비디오입니다.</string>
 
     <!-- YouTubeChannelsActivity -->
     <string name="add_channel">채널 추가</string>

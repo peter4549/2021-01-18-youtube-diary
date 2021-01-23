@@ -13,6 +13,7 @@
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
 
+        <item name="android:buttonStyle">@style/ButtonStyle</item>
         <item name="android:textViewStyle">@style/TextViewStyle</item>
     </style>
 
@@ -49,8 +50,18 @@
         <item name="android:textColor">@color/color_text</item>
     </style>
 
+    <style name="ButtonStyle" parent="@android:style/Widget.DeviceDefault.Button.Borderless">
+        <item name="android:fontFamily">@font/font_family_well_today_medium</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
     <style name="WellTodayMediumFontFamilyStyle">
         <item name="android:fontFamily">@font/font_family_well_today_medium</item>
         <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="DialogFragmentAnimation">
+        <item name="android:windowEnterAnimation">@anim/anim_fade_in</item>
+        <item name="android:windowExitAnimation">@anim/anim_fade_out</item>
     </style>
 </resources>

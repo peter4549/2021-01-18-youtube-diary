@@ -8,6 +8,8 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="text_accent">@color/deep_purple_200</color>
+
     <color name="progress_dialog_background">#80263238</color>
 
     <color name="activity_background">@color/outer_space</color>

@@ -1,12 +1,12 @@
 package com.duke.elliot.youtubediary.util
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
-import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Filter
-import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
@@ -20,45 +20,57 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.youtubediary.R
+import com.duke.elliot.youtubediary.database.Folder
 import com.duke.elliot.youtubediary.databinding.FragmentSearchBarListDialogBinding
 import kotlinx.android.synthetic.main.item_list.view.*
+import timber.log.Timber
 
-
-open class SearchBarListDialogFragment: DialogFragment() {
+open class SearchBarListDialogFragment<T>: DialogFragment() {
 
     protected lateinit var binding: FragmentSearchBarListDialogBinding
 
-    protected val list = arrayListOf<ListItem>()
+    protected val list = arrayListOf<T>()
     protected var listAdapter: ListItemAdapter? = null
 
-    private var imageAddCallback: (() -> Unit)? = null
-    private var moreOptionsItemIdOnSelectedPairs = mutableMapOf<Int, (ListItem) -> Unit>()
     var moreOptionsEnabled = true
     var moreOptionsMenuRes = -1
     var type = TEXT  // Default: TEXT
     var title = ""
-    private var searchWord = ""
+    protected var searchWord = ""
+
+    protected var onClickListener: OnClickListener<T>? = null
+    protected var listItemDiffCallback: DiffUtil.ItemCallback<T>? = null
+
+    interface OnClickListener<T> {
+        fun onListItemClick(listItem: T)
+        fun onAddClick()
+        fun moreOptionsClick(itemId: Int, listItem: T)
+    }
+
+    interface FragmentContainer {
+        fun <T> onRequestListener(): OnClickListener<T>?
+    }
 
     /** importListExternally must be changed before calling onCreateView in the subclass. */
     protected var importListExternally = true
 
-    @Suppress("unused")
-    fun setOnMoreOptionsItemSelectedListeners(vararg moreOptionsItemIdOnSelectedListenerPairs: Pair<Int, (ListItem) -> Unit>) {
-        moreOptionsItemIdOnSelectedListenerPairs.forEach {
-            if (this.moreOptionsItemIdOnSelectedPairs.keys.notContains(it.first))
-                this.moreOptionsItemIdOnSelectedPairs[it.first] = it.second
-        }
+    override fun onAttach(context: Context) {
+        if (context is FragmentContainer)
+            onClickListener = context.onRequestListener()
+
+        super.onAttach(context)
     }
 
     @Suppress("unused")
-    fun setList(list: List<ListItem>) {
+    fun setList(list: List<T>) {
         this.list.addAll(list)
         listAdapter = ListItemAdapter()
         listAdapter?.submitList(this.list)
     }
 
-    fun setImageAddCallback(imageAddCallback: () -> Unit) {
-        this.imageAddCallback = imageAddCallback
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        dialog?.window?.attributes?.windowAnimations = R.style.DialogFragmentAnimation
     }
 
     override fun onCreateView(
@@ -69,11 +81,11 @@ open class SearchBarListDialogFragment: DialogFragment() {
         binding = FragmentSearchBarListDialogBinding.inflate(inflater, container, false)
         binding.textTitle.text = title
 
-        initSearchView()
-
         binding.imageAdd.setOnClickListener {
-            imageAddCallback?.invoke()
+            onClickListener?.onAddClick()
         }
+
+        initSearchView()
 
         if (importListExternally)
             initRecyclerView()
@@ -111,28 +123,26 @@ open class SearchBarListDialogFragment: DialogFragment() {
         }
     }
 
-    inner class ListItemAdapter: ListAdapter<ListItem, ListItemAdapter.ViewHolder>(
-        ListItemDiffCallback()
-    ) {
+    protected open fun filtering(listItem: T): T? {
+        if (listItem is ListItem)
+            if (listItem.name.contains(searchWord))
+                return listItem
 
-        private val originalListItems = arrayListOf<ListItem>()
+        return null
+    }
 
-        inner class ViewHolder(val view: View): RecyclerView.ViewHolder(view)
+    protected open fun bind(holder: ListItemAdapter.ViewHolder, listItem: T) {
+        if (listItem is ListItem) {
+            holder.view.linearLayout_listItem.setOnClickListener {
+                onClickListener?.onListItemClick(listItem)
+            }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context).inflate(
-                R.layout.item_list,
-                parent,
-                false
+            setTextAndChangeSearchWordColor(
+                holder.view.text_name,
+                listItem.name,
+                searchWord,
+                listItem.color
             )
-            return ViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val listItem = getItem(position)
-
-            holder.view.text_name.text = listItem.name
-            setTextAndChangeSearchWordColor(holder.view.text_name, listItem.name, searchWord, listItem.color)
 
             when (type) {
                 COLOR_BAR -> {
@@ -169,31 +179,54 @@ open class SearchBarListDialogFragment: DialogFragment() {
             } else
                 holder.view.image_more.visibility = View.GONE
         }
+    }
 
-        fun submitListItems(listItems: List<ListItem>) {
+    /** Adapter */
+    inner class ListItemAdapter: ListAdapter<T, ListItemAdapter.ViewHolder>(
+        listItemDiffCallback ?: ListItemDiffCallback()
+    ) {
+
+        private val originalListItems = arrayListOf<T>()
+
+        inner class ViewHolder(val view: View): RecyclerView.ViewHolder(view)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context).inflate(
+                R.layout.item_list,
+                parent,
+                false
+            )
+
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            bind(holder, getItem(position))
+        }
+
+        fun submitListItems(listItems: List<T>) {
             originalListItems.clear()
             originalListItems.addAll(listItems)
             submitList(listItems)
         }
 
         fun getFilter(): Filter {
-            var listItemsFiltered: MutableList<ListItem>
+            var listItemsFiltered: MutableList<T>
 
             return object : Filter() {
                 override fun performFiltering(charSequence: CharSequence?): FilterResults {
                     searchWord = charSequence.toString()
-                    listItemsFiltered = if (searchWord.isBlank())
-                        originalListItems
-                    else {
-                        val listItemsFiltering = mutableListOf<ListItem>()
+                    listItemsFiltered =
+                        if (searchWord.isBlank())
+                            originalListItems
+                        else {
+                            val listItemsFiltering = mutableListOf<T>()
 
-                        for (listItem in originalListItems) {
-                            if (listItem.name.contains(searchWord))
-                                listItemsFiltering.add(listItem)
+                            for (listItem in originalListItems)
+                                filtering(listItem)?.let { listItemsFiltering.add(it) }
+
+                            listItemsFiltering
                         }
-
-                        listItemsFiltering
-                    }
 
                     return FilterResults().apply {
                         values = listItemsFiltered
@@ -202,45 +235,39 @@ open class SearchBarListDialogFragment: DialogFragment() {
 
                 override fun publishResults(charSequence: CharSequence?, results: FilterResults?) {
                     @Suppress("UNCHECKED_CAST")
-                    if (results?.values != null)
-                        submitList(results.values as List<ListItem>)
+                    if (results?.values != null) {
+                        submitList(results.values as List<T>)
+
+                        if (searchWord.isBlank())
+                            notifyDataSetChanged()
+                    }
                 }
             }
         }
+    }
 
-        private fun setTextAndChangeSearchWordColor(
-            textView: TextView, text: String,
-            searchWord: String, @ColorInt color: Int?
-        ) {
-            if (color == null) {
-                textView.text = text
-                return
-            }
+    inner class ListItemDiffCallback: DiffUtil.ItemCallback<T>() {
+        override fun areItemsTheSame(oldItem: T, newItem: T): Boolean {
+            return oldItem == newItem
+        }
 
-            if (text.isBlank()) {
-                textView.text = text
-                return
-            }
-
-            val hexColor = color.toHexColor()
-            val htmlText = text.replaceFirst(searchWord, "<font color='$hexColor'>$searchWord</font>")
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
-                textView.text = Html.fromHtml(htmlText, Html.FROM_HTML_MODE_LEGACY)
-            else
-                @Suppress("DEPRECATION")
-                textView.text = Html.fromHtml(htmlText)
+        @SuppressLint("DiffUtilEquals")
+        override fun areContentsTheSame(oldItem: T, newItem: T): Boolean {
+            return oldItem == newItem
         }
     }
 
-    protected fun showPopupMenu(view: View, listItem: ListItem) {
+    protected fun showPopupMenu(view: View, listItem: T) {
         val popupMenu = PopupMenu(view.context, view)
 
-        if (moreOptionsMenuRes == -1)
+        if (moreOptionsMenuRes == -1) {
+            Timber.e(IllegalArgumentException("To use moreOptions, you need to set the moreOptionsMenuRes."))
             return
+        }
 
         popupMenu.inflate(moreOptionsMenuRes)
         popupMenu.setOnMenuItemClickListener { item ->
-            moreOptionsItemIdOnSelectedPairs[item.itemId]?.invoke(listItem)
+            onClickListener?.moreOptionsClick(item.itemId, listItem)
             true
         }
 
@@ -257,19 +284,10 @@ open class SearchBarListDialogFragment: DialogFragment() {
     }
 }
 
+// Default list item.
 data class ListItem(
     val id: Long,
     val name: String,
     val imageUri: String?,
     @ColorInt val color: Int?
 )
-
-class ListItemDiffCallback: DiffUtil.ItemCallback<ListItem>() {
-    override fun areItemsTheSame(oldItem: ListItem, newItem: ListItem): Boolean {
-        return oldItem.id == newItem.id
-    }
-
-    override fun areContentsTheSame(oldItem: ListItem, newItem: ListItem): Boolean {
-        return oldItem == newItem
-    }
-}

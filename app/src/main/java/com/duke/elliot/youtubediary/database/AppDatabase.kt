@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.duke.elliot.youtubediary.database.youtube.*
 
-const val APP_DATABASE_NAME = "com.duke.elliot.youtubediary.database.app_database_debug:1.1.0"
+const val APP_DATABASE_NAME = "com.duke.elliot.youtubediary.database.app_database_debug:1.1.1"
 
 @Database(entities = [DisplayPlaylistModel::class, DisplayVideoModel::class,
     UpdatedAt::class, NextPageToken::class,

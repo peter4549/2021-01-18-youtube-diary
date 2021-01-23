@@ -100,8 +100,6 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
 
                     previousPageToken = pageToken
 
-                    showToast("AAA: $pageToken")
-
                     if (viewModel.playlistId == DEFAULT_PLAYLIST_ID)
                         viewModel.addDisplayVideosByChannelId(viewModel.channelId, pageToken)
                     else

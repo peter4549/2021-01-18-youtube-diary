@@ -15,13 +15,13 @@ data class Folder(
         @ColorInt var color: Int,
         var diaryIds: Array<Long> = arrayOf()
 ): Parcelable {
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
         other as Folder
 
+        if (id != other.id) return false
         if (name != other.name) return false
         if (color != other.color) return false
         if (!diaryIds.contentEquals(other.diaryIds)) return false
@@ -30,9 +30,11 @@ data class Folder(
     }
 
     override fun hashCode(): Int {
-        var result = name.hashCode()
+        var result = id.hashCode()
+        result = 31 * result + name.hashCode()
         result = 31 * result + color
         result = 31 * result + diaryIds.contentHashCode()
         return result
     }
+
 }

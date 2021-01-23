@@ -90,8 +90,11 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth-ktx'
     implementation 'com.google.android.gms:play-services-auth:19.0.0'
 
-    // CircleIndicator
+    // CircleIndicator TODO; maybe.. remove.
     implementation 'me.relex:circleindicator:2.1.4'
+
+    // Material View Pager Dots Indicator
+    implementation 'com.tbuonomo.andrui:viewpagerdotsindicator:4.1.2'
 
     // ObservableScrollView
     implementation 'com.github.ksoichiro:android-observablescrollview:1.6.0'

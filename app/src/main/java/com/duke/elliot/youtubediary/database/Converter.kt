@@ -9,4 +9,14 @@ class Converters {
 
     @TypeConverter
     fun jsonToLongArray(value: String): Array<Long> = Gson().fromJson(value, Array<Long>::class.java)
+
+    @TypeConverter
+    fun folderToJson(value: Folder): String {
+        return Gson().toJson(value)
+    }
+
+    @TypeConverter
+    fun jsonToFolder(value: String): Folder {
+        return Gson().fromJson(value, Folder::class.java)
+    }
 }
