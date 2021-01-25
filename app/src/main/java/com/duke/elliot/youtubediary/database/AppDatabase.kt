@@ -7,11 +7,11 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.duke.elliot.youtubediary.database.youtube.*
 
-const val APP_DATABASE_NAME = "com.duke.elliot.youtubediary.database.app_database_debug:1.1.1"
+const val APP_DATABASE_NAME = "com.duke.elliot.youtubediary.database.app_database_debug:1.2.1"
 
 @Database(entities = [DisplayPlaylistModel::class, DisplayVideoModel::class,
     UpdatedAt::class, NextPageToken::class,
-    Folder::class],
+    Folder::class, Diary::class],
     version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -20,6 +20,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun updatedAtDao(): UpdatedAtDao
     abstract fun nextPageTokenDao(): NextPageTokenDao
     abstract fun folderDao(): FolderDao
+    abstract fun diaryDao(): DiaryDao
 
     companion object {
         @Volatile

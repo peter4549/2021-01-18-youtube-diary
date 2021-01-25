@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:cardBackgroundColor="@color/layout_background_dark">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:id="@+id/image"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:layout_marginEnd="@dimen/spacing_small"
+                android:layout_marginBottom="@dimen/spacing_small"
+                android:layout_toStartOf="@+id/text_emptyMessage"
+                app:srcCompat="@drawable/ic_empty_box_30px"
+                app:tint="@color/color_icon"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/text_emptyMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/spacing_small"
+                android:layout_marginTop="0.5dp"
+                android:layout_centerInParent="true"
+                tools:text="폴더가 없습니다."
+                tools:ignore="RelativeOverlap" />
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+</layout>

@@ -1,6 +1,7 @@
 package com.duke.elliot.youtubediary.diary_writing.youtube.channels
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -22,6 +23,7 @@ class ChannelAdapter: ListAdapter<DisplayChannelModel, RecyclerView.ViewHolder>(
 
     interface OnItemClickListener {
         fun onClick(channelId: String)
+        fun onLongClick(view: View, channel: DisplayChannelModel)
     }
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
@@ -37,6 +39,11 @@ class ChannelAdapter: ListAdapter<DisplayChannelModel, RecyclerView.ViewHolder>(
                 onItemClickListener?.onClick(channel.id)
             }
 
+            binding.root.setOnLongClickListener {
+                onItemClickListener?.onLongClick(it, channel)
+                true
+            }
+
             binding.textTitle.text = channel.title
             Glide.with(binding.root.context)
                 .load(channel.thumbnailUri)
@@ -48,7 +55,7 @@ class ChannelAdapter: ListAdapter<DisplayChannelModel, RecyclerView.ViewHolder>(
         }
     }
 
-    private fun from(parent: ViewGroup, viewType: Int): ViewHolder {
+    private fun from(parent: ViewGroup): ViewHolder {
         val binding = ItemChannelBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
@@ -59,7 +66,7 @@ class ChannelAdapter: ListAdapter<DisplayChannelModel, RecyclerView.ViewHolder>(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        return from(parent, viewType)
+        return from(parent)
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {

@@ -5,10 +5,27 @@
     <string name="ok">확인</string>
     <string name="edit">편집</string>
     <string name="delete">삭제</string>
+    <string name="settings">설정</string>
+    <string name="save">저장</string>
+    <string name="do_not_save">저장 안 함</string>
+
+    <!-- Scroll -->
+    <string name="appbar_scrolling_view_behavior" translatable="false">
+        com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior
+    </string>
 
     <!-- DiaryWritingActivity -->
     <string name="add_youtube_video">유튜브 동영상 추가</string>
     <string name="this_video_has_already_been_added">이미 추가된 비디오입니다.</string>
+    <string name="snackbar_on_denied_message_record_audio">음성 인식기를 사용하려면 마이크 권한이 필요합니다. 설정에서 마이크 권한을 허용하세요.</string>
+    <string name="nothing_has_changed">변경된 내용이 없습니다.</string>
+    <string name="diary_not_found">다이어리를 찾을 수 없습니다.</string>
+    <string name="save_confirmation_dialog_title">다이어리 저장</string>
+    <string name="save_confirmation_dialog_message">변경된 내용을 저장하시겠습니까?</string>
+    <string name="latest">최신순</string>
+    <string name="oldest">오래된 순</string>
+    <string name="show_all">모두 보기</string>
+    <string name="edit_text_content_hint">내용을 입력하세요.</string>
 
     <!-- YouTubeChannelsActivity -->
     <string name="add_channel">채널 추가</string>
@@ -43,6 +60,7 @@
     <string name="playlist">플레이리스트</string>
     <string name="playlist_not_found">플레이리스트를 찾을 수 없습니다.</string>
     <string name="all_videos">모든 비디오</string>
+    <string name="videos">비디오</string>
 
     <!-- VideoAdapter -->
     <string name="play">재생</string>
@@ -60,4 +78,26 @@
     <string name="folder_name">폴더 이름</string>
     <string name="enter_the_folder_name">폴더 이름을 입력하세요.</string>
     <string name="edit_folder">폴더 수정</string>
+
+    <!-- FlowingDrawer -->
+    <string name="theme">테마</string>
+    <string name="theme_color">테마 색상</string>
+    <string name="night_mode">야간 모드</string>
+    <string name="dark_theme">어두운 테마</string>
+    <string name="light_theme">밝은 테마</string>
+    <string name="system_default_theme">시스템 기본 테마</string>
+    <string name="etc">기타</string>
+    <string name="share_the_app">앱 공유</string>
+    <string name="version">버전</string>
+    <string name="latest_version">최신 버전</string>
+    <string name="using_the_latest_version">최신 버전 사용 중</string>
+
+    <!-- DiariesFragment -->
+    <string name="failed_to_delete_the_folder">폴더를 삭제하지 못했습니다.</string>
+
+    <!-- Version Update -->
+    <string name="update">업데이트</string>
+    <string name="update_request_title">애플리케이션 업데이트</string>
+    <string name="update_request_message">애플리케이션을 최신 버전으로 업데이트 합니다.</string>
+    <string name="afterwards">나중에</string>
 </resources>

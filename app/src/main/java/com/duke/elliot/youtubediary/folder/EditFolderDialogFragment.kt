@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import com.duke.elliot.youtubediary.R
+import com.duke.elliot.youtubediary.database.AppDatabase
 import com.duke.elliot.youtubediary.database.Folder
 import com.duke.elliot.youtubediary.database.FolderDao
 import com.duke.elliot.youtubediary.databinding.FragmentEditFolderDialogBinding
@@ -22,21 +23,44 @@ import kotlinx.android.synthetic.main.fragment_edit_folder_dialog.*
 import kotlinx.coroutines.*
 import petrov.kristiyan.colorpicker.ColorPicker
 
+class EditFolderDialogFragment: DialogFragment() {
 
-class EditFolderDialogFragment(
-    private val folderDao: FolderDao,
-    private val mode: Int,
-    private val folder: Folder?
-)
-    : DialogFragment() {
+    private var mode: Int = MODE_UNINITIALIZED
+    private var position: Int = POSITION_UNINITIALIZED
+    private var folder: Folder? = null
+    private lateinit var folderDao: FolderDao
 
-    init {
-        if (mode == MODE_EDIT && folder == null)
-            throw NullPointerException("In edit mode, the folder must not be null.")
+    /** notifyItemChanged */
+    private var notifyItemChanged: ((position: Int) -> Unit)? = null
+
+    fun setNotifyItemChanged(notifyItemChanged: ((position: Int) -> Unit)) {
+        this.notifyItemChanged = notifyItemChanged
+    }
+
+    fun setMode(mode: Int) {
+        this.mode = mode
+    }
+
+    fun setPosition(position: Int) {
+        this.position = position
+    }
+
+    fun setFolder(folder: Folder) {
+        this.folder = folder
+    }
+
+    private var onClickListener: OnClickListener? = null
+
+    // UI update.
+    interface OnClickListener {
+        fun onPositiveButtonClick(folder: Folder)
+    }
+
+    interface FragmentContainer {
+        fun onRequestOnClickListener(): OnClickListener?
     }
 
     private lateinit var binding: FragmentEditFolderDialogBinding
-    private var afterEditingCallback: ((Folder) -> Unit)? = null
 
     private var color = 0
     private var typedValue = TypedValue()  // android.R.attr.selectableItemBackgroundBorderless
@@ -44,8 +68,11 @@ class EditFolderDialogFragment(
     private val job = Job()
     private val coroutineScope = CoroutineScope(Dispatchers.Main + job)
 
-    fun setCallbackAfterEditing(callbackAfterEditing: (Folder) -> Unit) {
-        this.afterEditingCallback = callbackAfterEditing
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_MODE, mode)
+        outState.putInt(KEY_POSITION, position)
+        outState.putParcelable(KEY_FOLDER, folder)
     }
 
     override fun onAttach(context: Context) {
@@ -55,6 +82,9 @@ class EditFolderDialogFragment(
                 typedValue,
                 true
             )
+
+        if (context is FragmentContainer)
+            onClickListener = context.onRequestOnClickListener()
 
         super.onAttach(context)
     }
@@ -75,6 +105,21 @@ class EditFolderDialogFragment(
             container,
             false
         )
+
+        if (savedInstanceState != null) {
+            mode = savedInstanceState.getInt(KEY_MODE)
+            position = savedInstanceState.getInt(KEY_POSITION)
+            folder = savedInstanceState.getParcelable(KEY_FOLDER)
+        }
+
+        if (mode == MODE_UNINITIALIZED)
+            throw IllegalStateException("mode must be initialized.")
+
+        if (mode == MODE_EDIT && folder == null)
+            throw NullPointerException("In edit mode, the folder must not be null.")
+
+        folderDao = AppDatabase.getInstance(binding.root.context).folderDao()
+
         color = folder?.color ?: ContextCompat.getColor(requireContext(), R.color.colorRed200)  // Default color.
 
         binding.title.text = when(mode) {
@@ -105,7 +150,10 @@ class EditFolderDialogFragment(
                             it.color = color
 
                             updateFolder(it)
-                            afterEditingCallback?.invoke(it)
+                            onClickListener?.onPositiveButtonClick(it)
+
+                            if (position != POSITION_UNINITIALIZED)
+                            notifyItemChanged?.invoke(position)
                         }
                     } else {
                         binding.textInputLayout.isErrorEnabled = true
@@ -159,7 +207,7 @@ class EditFolderDialogFragment(
 
             colorPicker.positiveButton?.let {
                 it.setText(R.string.ok)
-                it.setTextColor(getColor(it.context, R.color.text_accent))
+                it.setTextColor(getColor(it.context, R.color.text_accent_light))
                 it.setBackgroundResource(typedValue.resourceId)
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
                     it.setTextAppearance(R.style.WellTodayMediumFontFamilyStyle)
@@ -208,7 +256,14 @@ class EditFolderDialogFragment(
     }
 
     companion object {
+        const val MODE_UNINITIALIZED = -1
         const val MODE_ADD = 0
         const val MODE_EDIT = 1
+
+        const val POSITION_UNINITIALIZED = -1
+
+        private const val KEY_MODE = "com.duke.elliot.youtubediary.folder.edit_folder_dialog_fragment.key_mode"
+        private const val KEY_FOLDER = "com.duke.elliot.youtubediary.folder.edit_folder_dialog_fragment.key_folder"
+        private const val KEY_POSITION = "com.duke.elliot.youtubediary.folder.edit_folder_dialog_fragment.key_position"
     }
 }

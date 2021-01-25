@@ -6,7 +6,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/activity_background">
+        android:background="@color/layout_background_dark">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -14,7 +14,7 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@android:color/transparent"
             android:minHeight="?attr/actionBarSize"
-            android:theme="?attr/actionBarTheme"
+            android:theme="@style/ToolbarTheme"
             android:elevation="2dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -43,6 +43,7 @@
             app:layout_constraintTop_toBottomOf="@+id/view_anchor">
 
             <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/constraintLayout_content"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
@@ -50,11 +51,30 @@
                     android:id="@+id/relativeLayout_viewPager"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/parallax_image_height"
-                    android:background="@color/grey_900"
+                    android:background="@color/layout_background_light"
                     android:visibility="gone"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
+
+                    <FrameLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentBottom="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_marginBottom="@dimen/spacing_medium"
+                        android:layout_marginStart="@dimen/spacing_small"
+                        android:elevation="4dp">
+
+                        <ImageView
+                            android:id="@+id/image_viewPagerOptions"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            app:srcCompat="@drawable/ic_round_more_vert_24"
+                            app:tint="@color/ghost_white"
+                            tools:ignore="ContentDescription" />
+                    </FrameLayout>
 
                     <androidx.viewpager2.widget.ViewPager2
                         android:id="@+id/viewPager"
@@ -78,29 +98,15 @@
                         app:dotsSize="12dp"
                         app:dotsSpacing="4dp"
                         app:dotsStrokeWidth="2dp" />
-
-                    <ImageView
-                        android:id="@+id/image_viewPagerOptions"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:layout_marginBottom="@dimen/spacing_medium"
-                        android:layout_marginStart="@dimen/spacing_small"
-                        android:layout_alignParentBottom="true"
-                        android:layout_alignParentStart="true"
-                        android:elevation="4dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        app:srcCompat="@drawable/ic_round_more_vert_24"
-                        app:tint="@color/ghost_white"
-                        tools:ignore="ContentDescription" />
                 </RelativeLayout>
 
 
                 <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/constraintLayout_text"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:elevation="2dp"
-                    android:background="@color/activity_background"
-                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:background="@color/layout_background_dark"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/relativeLayout_viewPager">
@@ -110,7 +116,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/spacing_medium"
-                        android:layout_marginTop="@dimen/spacing_small"
+                        android:layout_marginTop="@dimen/spacing_smallest"
+                        android:paddingTop="@dimen/spacing_small"
                         android:textSize="@dimen/text_size_small"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
@@ -137,6 +144,7 @@
                         android:layout_marginBottom="@dimen/spacing_small"
                         android:fontFamily="@font/font_family_well_today_medium"
                         android:background="@android:color/transparent"
+                        android:lineSpacingMultiplier="1.1"
                         android:ems="10"
                         android:gravity="top|start"
                         android:importantForAutofill="no"
@@ -145,54 +153,86 @@
                         android:paddingTop="@dimen/spacing_small"
                         android:paddingBottom="@dimen/spacing_small"
                         android:textSize="@dimen/text_size_medium"
+                        android:hint="@string/edit_text_content_hint"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/text_date"
                         tools:ignore="LabelFor"
                         tools:text="Sekiro: Shadow Dies Twice Full Story Movie" />
 
-                    <!-- TODO: test -->
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <LinearLayout
+                    android:id="@+id/linearLayout_folder"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="top"
+                    android:orientation="horizontal"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/constraintLayout_text"
+                    tools:ignore="UseCompoundDrawables">
+
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="480dp"
-                        android:orientation="vertical"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/editText_content">
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        tools:ignore="UselessParent">
 
-                        <LinearLayout
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginBottom="0.5dp"
+                            android:layout_marginEnd="@dimen/spacing_smallest"
+                            android:layout_marginStart="@dimen/spacing_medium"
+                            app:srcCompat="@drawable/ic_round_folder_24"
+                            app:tint="@color/color_icon"
+                            tools:ignore="ContentDescription" />
+
+                        <TextView
+                            android:id="@+id/text_folder"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:paddingBottom="@dimen/spacing_smallest"
+                            android:paddingEnd="@dimen/spacing_small"
+                            android:paddingStart="@dimen/spacing_small"
+                            android:paddingTop="4.5dp"
                             android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            tools:ignore="UseCompoundDrawables">
-
-                            <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:layout_marginEnd="@dimen/spacing_smallest"
-                                app:srcCompat="@drawable/ic_round_folder_24"
-                                tools:ignore="ContentDescription" />
-
-                            <TextView
-                                android:id="@+id/text_folder"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical"
-                                android:textSize="@dimen/text_size_smallest"
-                                tools:text="folder" />
-                        </LinearLayout>
+                            android:textSize="@dimen/text_size_small"
+                            tools:text="folder" />
                     </LinearLayout>
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.github.ksoichiro.android.observablescrollview.ObservableScrollView>
 
+        <FrameLayout
+            android:id="@+id/frameLayout_recognitionProgressView"
+            android:layout_width="match_parent"
+            android:layout_height="96dp"
+            android:layout_marginBottom="@dimen/spacing_xlarge"
+            android:layout_marginEnd="@dimen/spacing_largest"
+            android:layout_marginStart="@dimen/spacing_largest"
+            android:background="@drawable/background_dialog_rounded_corners"
+            android:elevation="4dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayout_tools"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <com.github.zagum.speechrecognitionview.RecognitionProgressView
+                android:id="@+id/recognitionProgressView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </FrameLayout>
+
         <LinearLayout
-            android:id="@+id/toolContainer"
+            android:id="@+id/linearLayout_tools"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/purple_500"
+            android:background="@color/layout_background_dark"
             android:orientation="horizontal"
+            android:elevation="8dp"
             android:gravity="center_vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -205,15 +245,19 @@
                 android:layout_marginBottom="@dimen/spacing_small"
                 android:layout_marginStart="@dimen/spacing_medium"
                 android:layout_marginTop="@dimen/spacing_small"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 app:srcCompat="@drawable/ic_round_folder_24"
-                tools:ignore="ContentDescription" />
+                app:tint="@color/color_icon"
+                tools:ignore="ContentDescription"/>
 
             <ImageView
-                android:id="@+id/speechRecognition"
+                android:id="@+id/image_speechRecognition"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:layout_marginStart="@dimen/spacing_medium"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 app:srcCompat="@drawable/ic_round_mic_24"
+                app:tint="@color/color_icon"
                 tools:ignore="ContentDescription" />
 
             <Space
@@ -222,12 +266,14 @@
                 android:layout_weight="1" />
 
             <ImageView
-                android:id="@+id/save"
+                android:id="@+id/image_save"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginEnd="@dimen/spacing_medium"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 app:srcCompat="@drawable/ic_checkmark_48px"
+                app:tint="@color/color_icon"
                 tools:ignore="ContentDescription" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -4,7 +4,10 @@ import android.os.Parcelable
 import androidx.annotation.ColorInt
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.google.gson.Gson
 import kotlinx.android.parcel.Parcelize
+
+const val DEFAULT_FOLDER_ID = -1L
 
 @Entity(tableName = "folder")
 @Parcelize
@@ -15,6 +18,12 @@ data class Folder(
         @ColorInt var color: Int,
         var diaryIds: Array<Long> = arrayOf()
 ): Parcelable {
+
+    fun deepCopy():Folder {
+        val json = Gson().toJson(this)
+        return Gson().fromJson(json, Folder::class.java)
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -36,5 +45,4 @@ data class Folder(
         result = 31 * result + diaryIds.contentHashCode()
         return result
     }
-
 }

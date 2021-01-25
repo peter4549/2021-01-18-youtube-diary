@@ -6,7 +6,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/fragment_background">
+        android:background="@color/layout_background_dark">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -36,7 +36,7 @@
                 android:layout_marginTop="@dimen/spacing_small"
                 android:gravity="center_vertical"
                 android:hint="@string/folder_name"
-                app:boxBackgroundColor="@color/fragment_background"
+                app:boxBackgroundColor="@color/layout_background_dark"
                 app:boxStrokeColor="@color/color_icon"
                 app:boxStrokeErrorColor="@color/error"
                 app:boxStrokeWidth="0dp"
@@ -130,7 +130,7 @@
                 android:paddingStart="@dimen/spacing_medium"
                 android:paddingTop="@dimen/spacing_small"
                 android:text="@string/ok"
-                android:textColor="@color/text_accent"
+                android:textColor="@color/text_accent_dark"
                 android:textSize="@dimen/text_size_large"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 app:layout_constraintBottom_toBottomOf="parent"

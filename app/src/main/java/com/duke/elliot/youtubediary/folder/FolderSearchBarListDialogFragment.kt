@@ -13,10 +13,14 @@ import com.duke.elliot.youtubediary.database.FolderDao
 import com.duke.elliot.youtubediary.util.SearchBarListDialogFragment
 import com.duke.elliot.youtubediary.util.setTextAndChangeSearchWordColor
 import kotlinx.android.synthetic.main.item_list.view.*
+import kotlinx.coroutines.*
 
 class FolderSearchBarListDialogFragment : SearchBarListDialogFragment<Folder>() {
 
     private lateinit var folderDao: FolderDao
+
+    private val job = Job()
+    private val coroutineScope = CoroutineScope(Dispatchers.Main + job)
 
     init {
         importListExternally = false  // If false, recyclerViewListItem will not be initialized.
@@ -34,6 +38,10 @@ class FolderSearchBarListDialogFragment : SearchBarListDialogFragment<Folder>() 
     override fun bind(holder: ListItemAdapter.ViewHolder, listItem: Folder) {
         holder.view.linearLayout_listItem.setOnClickListener {
             onClickListener?.onListItemClick(listItem)
+            coroutineScope.launch {
+                delay(150)
+                dismiss()
+            }
         }
 
         setTextAndChangeSearchWordColor(
@@ -86,12 +94,8 @@ class FolderSearchBarListDialogFragment : SearchBarListDialogFragment<Folder>() 
                 }
             }
 
-            listAdapter?.submitListItems(folders)
-
-            /** Updated. */
-            if (folders.count() == listAdapter?.currentList?.count()) {
-                listAdapter?.notifyDataSetChanged()
-            }
+            listAdapter?.submitListItems(folders.filter { it.name.isNotBlank() })
+            listAdapter?.notifyDataSetChanged()
         })
 
         return root

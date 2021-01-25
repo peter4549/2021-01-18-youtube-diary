@@ -10,6 +10,7 @@ import android.view.WindowManager
 import androidx.databinding.DataBindingUtil
 import com.duke.elliot.youtubediary.R
 import com.duke.elliot.youtubediary.databinding.ActivityTooltipBinding
+import com.duke.elliot.youtubediary.main.MainApplication
 
 
 class TooltipActivity: Activity() {

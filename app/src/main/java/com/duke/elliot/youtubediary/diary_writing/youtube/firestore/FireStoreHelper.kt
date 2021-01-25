@@ -23,12 +23,13 @@ class FireStoreHelper {
     }
 
     /** 로그인후 호출되어야함. user id로만 부를 것. */
-    fun setUserSnapshotListener(uid: String) {
+    fun setUserSnapshotListener(uid: String, onFailure: (() -> Unit)? = null, onSuccess: (() -> Unit)? = null) {
         val documentReference = userCollectionReference.document(uid)
         documentReference.addSnapshotListener { documentSnapshot, fireStoreException ->
             fireStoreException?.let {
                 // Exception occured.
                 // 채널 정보를 불러올 수 없습니다. 못했습니다.. 등등.
+                onFailure?.invoke()
             } ?: run {
                 documentSnapshot?.let { documentSnapshot ->
                     if (documentSnapshot.exists()) {
@@ -55,7 +56,7 @@ class FireStoreHelper {
                         setUser()
                     }
                 } ?: run {
-                    // 채널 정보를 불러올 수 없습니다.
+                    onFailure?.invoke()
                 }
             }
         }
@@ -97,6 +98,19 @@ class FireStoreHelper {
                         else
                             Timber.e("failed to update youtubeChannelId.")
                     }
+        }
+    }
+
+    fun deleteChannel(channel: DisplayChannelModel) {
+        firebaseUser?.uid?.let {
+            val documentReference = userCollectionReference.document(it)
+            documentReference.update(UserModel.FILED_YOUTUBE_CHANNELS, FieldValue.arrayRemove(channel))
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful)
+                        Timber.d("youtubeChannelId deleted.")
+                    else
+                        Timber.e("Failed to delete youtubeChannelId.")
+                }
         }
     }
 

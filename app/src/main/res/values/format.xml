@@ -1,4 +1,5 @@
 <resources>
     <string name="date_format">M월 d일 EEEE</string>
     <string name="time_format">"a h시 m분"</string>
+    <string name="year_month_format">yyyy년 M월</string>
 </resources>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/linearLayout_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/image_header"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="16dp"
+                android:clickable="false"
+                android:focusable="false"
+                app:tint="@color/color_icon"
+                tools:srcCompat="@drawable/ic_round_folder_24"
+                tools:ignore="ContentDescription" />
+
+            <ImageView
+                android:id="@+id/image_arrowDropDown"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="8dp"
+                android:clickable="false"
+                android:focusable="false"
+                app:srcCompat="@drawable/ic_sharp_arrow_drop_down_24"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/text_header"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:drawablePadding="24dp"
+                android:paddingBottom="@dimen/spacing_small"
+                android:paddingEnd="@dimen/spacing_medium"
+                android:paddingStart="@dimen/spacing_small"
+                android:paddingTop="@dimen/spacing_small"
+                android:gravity="center_vertical"
+                tools:text="@string/folder"/>
+
+            <ImageView
+                android:id="@+id/image_neutral"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="@dimen/spacing_medium"
+                app:srcCompat="@drawable/ic_sharp_add_24"
+                app:tint="@color/color_icon"
+                tools:ignore="ContentDescription" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/text_emptyMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:padding="8dp"
+            android:visibility="gone"
+            android:text="@string/no_folder"
+            android:textColor="@color/color_text" />
+
+        <LinearLayout
+            android:id="@+id/linearLayout_body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                android:background="@color/layout_background_light"
+                android:visibility="visible"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/text_showAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_gravity="center"
+                android:elevation="2dp"
+                android:gravity="center"
+                android:padding="8dp"
+                android:visibility="visible"
+                android:drawablePadding="@dimen/spacing_small"
+                tools:text="모두 보기" />
+        </LinearLayout>
+    </LinearLayout>
+</layout>

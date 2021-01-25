@@ -7,6 +7,8 @@ import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.ColorInt
 import androidx.appcompat.app.AlertDialog
@@ -102,7 +104,7 @@ open class BaseActivity: AppCompatActivity() {
         return actionBarHeight
     }
 
-    protected fun showAlertDialog(
+    protected fun showMaterialAlertDialog(
         title: String?,
         message: String?,
         neutralButtonText: String?,
@@ -112,13 +114,33 @@ open class BaseActivity: AppCompatActivity() {
         positiveButtonText: String?,
         positiveButtonClickListener: ((DialogInterface?, Int) -> Unit)?
     ) {
-        MaterialAlertDialogBuilder(this)
+        val materialAlertDialog = MaterialAlertDialogBuilder(this)
             .setTitle(title)
             .setMessage(message)
             .setNeutralButton(neutralButtonText, neutralButtonClickListener)
             .setNegativeButton(negativeButtonText, negativeButtonClickListener)
             .setPositiveButton(positiveButtonText, positiveButtonClickListener)
+            .setCancelable(false)
             .show()
+
+        val textMessage = materialAlertDialog.findViewById<TextView>(android.R.id.message)
+        val button1 = materialAlertDialog.findViewById<Button>(android.R.id.button1)
+        val button2 = materialAlertDialog.findViewById<Button>(android.R.id.button2)
+        val button3 = materialAlertDialog.findViewById<Button>(android.R.id.button3)
+
+        @Suppress("DEPRECATION")
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            textMessage?.setTextAppearance(R.style.WellTodayMediumFontFamilyStyle)
+            button1?.setTextAppearance(R.style.WellTodayMediumFontFamilyStyle)
+            button2?.setTextAppearance(R.style.WellTodayMediumFontFamilyStyle)
+            button3?.setTextAppearance(R.style.WellTodayMediumFontFamilyStyle)
+        }
+        else {
+            textMessage?.setTextAppearance(this, R.style.WellTodayMediumFontFamilyStyle)
+            button1?.setTextAppearance(this, R.style.WellTodayMediumFontFamilyStyle)
+            button2?.setTextAppearance(this, R.style.WellTodayMediumFontFamilyStyle)
+            button3?.setTextAppearance(this, R.style.WellTodayMediumFontFamilyStyle)
+        }
     }
 
     private fun MutableSet<Int>.notContains(element: Int) = !contains(element)

@@ -13,8 +13,8 @@ interface DisplayPlaylistDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(displayPlaylistModels: List<DisplayPlaylistModel>)
 
-    @Query("delete from display_playlist_model where id in (:ids)")
-    fun deleteAll(ids: List<String>)
+    @Query("delete from display_playlist_model where channelId = :channelId")
+    fun deleteAll(channelId: String)
 
     @Query("SELECT COUNT(id) FROM display_playlist_model")
     fun getItemCount(): Int

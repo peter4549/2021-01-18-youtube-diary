@@ -5,7 +5,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/layout_background_dark">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -13,7 +14,8 @@
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary"
             android:minHeight="?attr/actionBarSize"
-            android:theme="?attr/actionBarTheme"
+            android:theme="@style/ToolbarTheme"
+            app:title="@string/videos"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -39,6 +41,7 @@
                 android:textSize="@dimen/text_size_medium"
                 android:textStyle="bold"
                 app:drawableStartCompat="@drawable/ic_sharp_arrow_drop_down_24"
+                app:drawableTint="@color/color_icon"
                 tools:text="내 모든 비디오"/>
         </FrameLayout>
 

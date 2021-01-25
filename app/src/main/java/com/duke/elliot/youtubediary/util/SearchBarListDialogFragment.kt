@@ -135,6 +135,7 @@ open class SearchBarListDialogFragment<T>: DialogFragment() {
         if (listItem is ListItem) {
             holder.view.linearLayout_listItem.setOnClickListener {
                 onClickListener?.onListItemClick(listItem)
+                dismiss()
             }
 
             setTextAndChangeSearchWordColor(

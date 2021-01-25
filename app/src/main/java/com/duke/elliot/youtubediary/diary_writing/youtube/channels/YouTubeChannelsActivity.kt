@@ -5,6 +5,8 @@ import android.content.*
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
+import androidx.appcompat.widget.PopupMenu
 import androidx.browser.customtabs.*
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
@@ -35,6 +37,7 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
     private lateinit var channelAdapter: ChannelAdapter
     private lateinit var customTabsClient: CustomTabsClient
     private lateinit var customTabsServiceConnection: CustomTabsServiceConnection
+    private val fireStoreHelper = FireStoreHelper()
     private var customTabsSession: CustomTabsSession? = null
     private var pageChangeCount = 0
 
@@ -52,7 +55,6 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
         channelAdapter.setOnItemClickListener(this)
         binding.recyclerViewChannel.apply {
             layoutManager = LinearLayoutManager(this@YouTubeChannelsActivity)
-            setHasFixedSize(true)
             adapter = channelAdapter
         }
 
@@ -64,6 +66,11 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
             broadcastReceiver,
             IntentFilter(UrlCheckService.ACTION_CORRECT_URL)
         )
+
+        setDisplayHomeAsUpEnabled(binding.toolbar)
+        setOnHomePressedCallback {
+            onBackPressed()
+        }
     }
 
     override fun onStart() {
@@ -73,6 +80,8 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
         } ?: run {
             requestSignIn()
         }
+
+        setBackgroundColor(binding.toolbar, color = MainApplication.primaryThemeColor)
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -117,13 +126,15 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
         }
     }
 
-    fun submitChannels(channels: List<DisplayChannelModel>) {
-        for (channel in channels) {
-            if (viewModel.channels.notContains(channel))
-                viewModel.channels.add(channel)
+    private fun submitChannels(channels: List<DisplayChannelModel>) {
+        if (viewModel.channels.isEmpty()) {
+            viewModel.channels.addAll(channels)
+            channelAdapter.submitList(channels)
+        } else if (viewModel.channels != channels) {
+            viewModel.channels.clear()
+            viewModel.channels.addAll(channels)
+            channelAdapter.submitList(channels)
         }
-
-        channelAdapter.submitList(channels)
     }
 
     private fun bindCustomTabsService() {
@@ -237,7 +248,7 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
 
     private fun requestSignIn() {
         val message = getString(R.string.request_sign_in_alert_dialog_message)
-        showAlertDialog(
+        showMaterialAlertDialog(
             title = getString(R.string.sign_in_with_google),
             message = message,
             neutralButtonText = getString(R.string.cancel),
@@ -303,6 +314,27 @@ class YouTubeChannelsActivity: BaseActivity(), ChannelAdapter.OnItemClickListene
 
     override fun onClick(channelId: String) {
         startYouTubeVideosActivity(channelId)
+    }
+
+    override fun onLongClick(view: View, channel: DisplayChannelModel) {
+        showPopupMenu(view, channel)
+    }
+
+    private fun showPopupMenu(view: View, channel: DisplayChannelModel) {
+        val popupMenu = PopupMenu(this, view)
+        popupMenu.inflate(R.menu.menu_channel_adapter)
+        popupMenu.setOnMenuItemClickListener { item ->
+            when(item.itemId) {
+                R.id.item_delete -> {
+                    // firebase 삭제.
+                    fireStoreHelper.deleteChannel(channel)
+                }
+            }
+
+            true
+        }
+
+        popupMenu.show()
     }
 
     override fun onUserDocumentSnapshot(user: UserModel) {

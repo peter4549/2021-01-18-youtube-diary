@@ -7,37 +7,37 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="ghost_white">#F8F8FF</color>
+    <color name="dark_grey">#A9A9A9</color>
+    <color name="silver">#C0C0C0</color>
+    <color name="grey_800">#424242</color>
     <color name="grey_900">#212121</color>
 
     <color name="deep_purple_100">#d1c4e9</color>
     <color name="deep_purple_200">#b39ddb</color>
+    <color name="deep_purple_300">#9575cd</color>
 
-    <color name="text_accent">@color/deep_purple_200</color>
+    <color name="default_primary_theme">@color/deep_purple_200</color>
 
-    <color name="baby_blue">#89CFF0</color>
-    <color name="outer_space">#414A4C</color>
-    <color name="ghost_white">#F8F8FF</color>
-    <color name="dark_grey">#A9A9A9</color>
-    <color name="light_grey">#D3D3D3</color>
-    <color name="youtube_red">#FF0000</color>
-    <color name="mauve">#E0B0FF</color>
+    <color name="text_accent_light">@color/deep_purple_200</color>
+    <color name="text_accent_dark">@color/deep_purple_300</color>
 
-    <color name="default_theme">@color/youtube_red</color>
-
-    <color name="progress_dialog_background">#80263238</color>
-
-    <color name="activity_background">@color/ghost_white</color>
-    <color name="fragment_background">@color/ghost_white</color>
-    <color name="toolbar_background">@color/default_theme</color>
-    <color name="relative_layout_view_pager_background">@color/grey_900</color>
+    <!-- Layout -->
+    <color name="layout_background_dark">@color/ghost_white</color>
+    <color name="layout_background_light">@color/ghost_white</color>
 
     <!-- Icon-->
     <color name="icon_enabled">@color/dark_grey</color>
-    <color name="icon_disabled">@color/light_grey</color>
+    <color name="icon_disabled">@color/silver</color>
+
+    <color name="divider">@color/silver</color>
+    <color name="drawer_menu_icon_enabled">@color/dark_grey</color>
+    <color name="drawer_menu_icon_disabled">@color/silver</color>
 
     <!-- Text -->
-    <color name="text_enabled">@color/outer_space</color>
-    <color name="text_disabled">@color/light_grey</color>
+    <color name="text_enabled">@color/grey_900</color>
+    <color name="text_disabled">@color/silver</color>
 
     <color name="error">#E25822</color>  <!-- Flame -->
 
@@ -48,6 +48,13 @@
     <!-- WormDotsIndicator -->
     <color name="worm_dots_indicator_dots">@color/ghost_white</color>
     <color name="worm_dots_indicator_dots_stroke">@color/ghost_white</color>
+
+    <!-- SpeechRecognitionView -->
+    <color name="speech_recognition_view_00">#3164d7</color>
+    <color name="speech_recognition_view_01">#d92d29</color>
+    <color name="speech_recognition_view_02">#eeaa10</color>
+    <color name="speech_recognition_view_03">#3164d7</color>
+    <color name="speech_recognition_view_04">#2e9641</color>
 
     <!-- Material Colors 400 -->
     <color name="colorRed400">#ef5350</color>

@@ -16,7 +16,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 30
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,6 +50,7 @@ dependencies {
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.2'
     implementation 'com.google.firebase:firebase-firestore:22.0.1'
     implementation files('libs/YouTubeAndroidPlayerApi.jar')
+    implementation 'com.google.firebase:firebase-config:20.0.2'
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
@@ -90,9 +91,6 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth-ktx'
     implementation 'com.google.android.gms:play-services-auth:19.0.0'
 
-    // CircleIndicator TODO; maybe.. remove.
-    implementation 'me.relex:circleindicator:2.1.4'
-
     // Material View Pager Dots Indicator
     implementation 'com.tbuonomo.andrui:viewpagerdotsindicator:4.1.2'
 
@@ -109,4 +107,14 @@ dependencies {
 
     // ColorPicker
     implementation 'petrov.kristiyan:colorpicker-library:1.1.10'
+
+    // Dexter
+    implementation 'com.karumi:dexter:6.2.2'
+
+    // SpeechRecognitionView
+    implementation 'com.github.zagum:SpeechRecognitionView:1.2.2'
+
+    // FlowingDrawer
+    implementation 'com.mxn.soul:flowingdrawer-core:2.1.0'
+    implementation 'com.nineoldandroids:library:2.4.0'
 }

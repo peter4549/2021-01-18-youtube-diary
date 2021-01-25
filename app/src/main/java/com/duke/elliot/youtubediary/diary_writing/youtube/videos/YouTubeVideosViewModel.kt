@@ -53,13 +53,18 @@ class YouTubeVideosViewModel(private val application: Application, val channelId
      * updatedAt: (channelId, KIND_UPDATED_AT_CHANNEL), (channelId, KIND_UPDATED_AT_PLAYLIST), (channelId, KIND_UPDATED_AT_VIDEO)
      * add: false
      */
-    fun initDisplayData() {
+    private fun initDisplayData() {
         viewModelScope.launch(Dispatchers.IO) {
             val updatedAt = database.updatedAtDao().getUpdatedAt(channelId, KIND_UPDATED_AT_CHANNEL)?.updatedAt
 
             if (updatedAt.isNotNull()) {
                 if (moreThan3HoursPassed(updatedAt)) {
                     /** YouTube Data API */
+
+                    /** Delete existing data. */
+                    database.displayPlaylistDao().deleteAll(channelId)
+                    database.displayVideoDao().deleteAllByChannelId(channelId)
+
                     /** Playlist */
                     requestSearchList(channelId, TYPE_PLAYLIST, null).let { searchList ->
                         val nextPageToken = searchList?.nextPageToken ?: blank
@@ -214,6 +219,10 @@ class YouTubeVideosViewModel(private val application: Application, val channelId
             if (updatedAt.isNotNull()) {
                 if (moreThan3HoursPassed(updatedAt)) {
                     /** YouTube Data API */
+
+                    /** Delete existing data. */
+                    database.displayVideoDao().deleteAllByPlaylistId(playlistId)
+
                     val playlistItems = requestPlaylistItems(playlistId, null)
 
                     /** Update nextPageToken. */

@@ -14,6 +14,7 @@ import com.duke.elliot.youtubediary.databinding.ActivityYoutubeVideosBinding
 import com.duke.elliot.youtubediary.diary_writing.youtube.*
 import com.duke.elliot.youtubediary.diary_writing.youtube.channels.YouTubeChannelsActivity.Companion.EXTRA_NAME_CHANNEL_ID
 import com.duke.elliot.youtubediary.diary_writing.youtube.player.YouTubePlayerActivity
+import com.duke.elliot.youtubediary.main.MainApplication
 import com.duke.elliot.youtubediary.util.SimpleDialogFragment
 import com.duke.elliot.youtubediary.util.SimpleItem
 import kotlinx.coroutines.*
@@ -26,13 +27,10 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
 
     private lateinit var binding:ActivityYoutubeVideosBinding
     private lateinit var viewModel: YouTubeVideosViewModel
-    private val job = Job()
-    private val coroutineScope = CoroutineScope(Dispatchers.Main + job)
 
     private lateinit var timeAgoFormatConverter: TimeAgoFormatConverter
     private lateinit var videoAdapter: VideoAdapter
 
-    private var uninitialized = true
     private var previousPageToken: String? = null
 
     private var simpleDialogFragment: SimpleDialogFragment? = null
@@ -60,6 +58,10 @@ class YouTubeVideosActivity: BaseActivity(), VideoAdapter.OnMenuItemClickListene
         binding.textPlaylist.text = getString(R.string.all_videos)
 
         initRecyclerView()
+
+        setDisplayHomeAsUpEnabled(binding.toolbar)
+        setOnHomePressedCallback { onBackPressed() }
+        setBackgroundColor(binding.toolbar, color = MainApplication.primaryThemeColor)
 
         /** LiveData */
         viewModel.displayPlaylists.observe(this, { displayPlaylistModels ->
