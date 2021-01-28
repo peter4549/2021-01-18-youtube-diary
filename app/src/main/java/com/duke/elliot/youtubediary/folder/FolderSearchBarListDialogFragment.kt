@@ -11,6 +11,8 @@ import com.duke.elliot.youtubediary.database.AppDatabase
 import com.duke.elliot.youtubediary.database.Folder
 import com.duke.elliot.youtubediary.database.FolderDao
 import com.duke.elliot.youtubediary.util.SearchBarListDialogFragment
+import com.duke.elliot.youtubediary.util.fadeIn
+import com.duke.elliot.youtubediary.util.fadeOut
 import com.duke.elliot.youtubediary.util.setTextAndChangeSearchWordColor
 import kotlinx.android.synthetic.main.item_list.view.*
 import kotlinx.coroutines.*
@@ -85,7 +87,14 @@ class FolderSearchBarListDialogFragment : SearchBarListDialogFragment<Folder>() 
         binding.textTitle.text = title
         binding.imageAdd.setImageResource(R.drawable.ic_round_create_new_folder_24)
 
+        /** LiveData */
         folderDao.getAll().observe(viewLifecycleOwner, { folders ->
+
+            if (folders.isNullOrEmpty())
+                binding.constraintLayoutEmptyMessage.fadeIn(200)
+            else
+                binding.constraintLayoutEmptyMessage.fadeOut(200)
+
             if (listAdapter == null) {
                 listAdapter = ListItemAdapter()
                 binding.recyclerViewListItem.apply {

@@ -48,6 +48,8 @@ class SignInActivity: BaseActivity(), SignInHelper.OnSignInListener {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
+        dismissProgressDialog()
+
         when (requestCode) {
             REQUEST_CODE_GOOGLE_SIGN_IN -> {
                 try {

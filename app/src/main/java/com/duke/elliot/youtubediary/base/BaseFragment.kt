@@ -96,6 +96,7 @@ open class BaseFragment: Fragment() {
         context: Context,
         title: String?,
         message: String?,
+        position: Int? = null,
         neutralButtonText: String?,
         neutralButtonClickListener: ((DialogInterface?, Int) -> Unit)?,
         negativeButtonText: String?,

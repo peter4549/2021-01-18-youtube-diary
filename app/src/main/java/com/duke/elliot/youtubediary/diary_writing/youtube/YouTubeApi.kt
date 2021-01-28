@@ -16,7 +16,11 @@ const val TYPE_VIDEO = "video"
 
 object YouTubeApi {
     const val GOOGLE_AUTHORIZATION_SERVER_URL = "https://accounts.google.com/o/oauth2/token"
-    const val ANDROID_CLIENT_ID = "203541998677-2dlo08se98s2ickum70eg1617d5a03gj.apps.googleusercontent.com"
+    // Debug:
+    // const val ANDROID_CLIENT_ID = "203541998677-fp5e17rekpfc1fn1jtrp5vm57e64nak2.apps.googleusercontent.com"
+    // Release:
+    // Firebase
+    const val ANDROID_CLIENT_ID = "203541998677-u3mol0oh2atnr7sg8ve2nelrschu3mj2.apps.googleusercontent.com"
     const val REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob"
     private const val RESPONSE_TYPE = "code"
     private const val SCOPE = "https://www.googleapis.com/auth/youtube"

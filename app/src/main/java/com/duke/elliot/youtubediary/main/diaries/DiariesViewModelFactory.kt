@@ -1,10 +1,8 @@
-package com.duke.elliot.youtubediary.main
+package com.duke.elliot.youtubediary.main.diaries
 
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.duke.elliot.youtubediary.database.Diary
-import com.duke.elliot.youtubediary.diary_writing.DiaryWritingViewModel
 
 class DiariesViewModelFactory(private val application: Application): ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {

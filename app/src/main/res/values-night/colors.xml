@@ -11,6 +11,11 @@
     <color name="text_accent_light">@color/deep_purple_200</color>
     <color name="text_accent_dark">@color/deep_purple_300</color>
 
+    <!-- Underlay Buttons -->
+    <color name="underlay_button_more">@color/deep_purple_300</color>
+    <color name="underlay_button_edit">@color/deep_purple_200</color>
+    <color name="underlay_button_delete">#E25822</color>
+
     <!-- Layout -->
     <color name="layout_background_dark">@color/grey_900</color>
     <color name="layout_background_light">@color/grey_800</color>

@@ -13,7 +13,8 @@
         android:textColor="@color/color_text"
         android:textSize="@dimen/text_size_small"
         android:fontFamily="@font/font_family_well_today_medium"
-        android:lineSpacingMultiplier="1.1"
+        android:lineSpacingMultiplier="@dimen/line_spacing_multiplier"
+        android:elevation="24dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

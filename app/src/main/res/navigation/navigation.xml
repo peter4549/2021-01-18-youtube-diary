@@ -5,6 +5,6 @@
 
     <fragment
         android:id="@+id/diariesFragment"
-        android:name="com.duke.elliot.youtubediary.main.DiariesFragment"
+        android:name="com.duke.elliot.youtubediary.main.diaries.DiariesFragment"
         android:label="DiariesFragment" />
 </navigation>

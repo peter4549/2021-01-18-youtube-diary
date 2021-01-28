@@ -23,7 +23,6 @@ class SplashActivity: AppCompatActivity() {
         setContentView(R.layout.activity_splash)
         window.statusBarColor = MainApplication.primaryThemeColor
 
-
         val gradientDrawable = GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
             intArrayOf(lightenColor(

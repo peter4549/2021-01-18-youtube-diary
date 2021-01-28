@@ -35,7 +35,7 @@
         android:paddingTop="@dimen/spacing_smallest"
         android:paddingEnd="@dimen/spacing_small"
         android:paddingBottom="@dimen/spacing_smallest"
-        android:textSize="@dimen/text_size_medium"
+        android:textSize="@dimen/text_size_small"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"

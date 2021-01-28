@@ -1,6 +1,7 @@
-package com.duke.elliot.youtubediary.main
+package com.duke.elliot.youtubediary.main.diaries
 
 import android.content.Context
+import android.location.Criteria
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +14,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.youtubediary.R
 import com.duke.elliot.youtubediary.database.AppDatabase
-import com.duke.elliot.youtubediary.database.DEFAULT_FOLDER_ID
 import com.duke.elliot.youtubediary.database.Diary
 import com.duke.elliot.youtubediary.database.Folder
 import com.duke.elliot.youtubediary.databinding.ItemDateBinding
@@ -29,8 +29,9 @@ const val VIEW_TYPE_DIARY_ITEM = 2
 const val SORT_BY_LATEST = 0
 const val SORT_BY_OLDEST = 1
 
-class DiaryAdapter: ListAdapter<AdapterItem, DiaryAdapter.ViewHolder>(AdapterItemDiffCallback()) {
+class DiaryAdapter(private val context: Context): ListAdapter<AdapterItem, DiaryAdapter.ViewHolder>(AdapterItemDiffCallback()) {
 
+    private var recyclerView: RecyclerView? = null
     private var onItemClickListener: OnItemClickListener? = null
     private var sortingCriteria = SORT_BY_LATEST
     private var folder: Folder? = null
@@ -38,6 +39,15 @@ class DiaryAdapter: ListAdapter<AdapterItem, DiaryAdapter.ViewHolder>(AdapterIte
 
     private val job = Job()
     private val coroutineScope = CoroutineScope(Dispatchers.Main + job)
+
+    init {
+        sortingCriteria = restoreSortingCriteria(context)
+    }
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        this.recyclerView = recyclerView
+    }
 
     fun setOnClickListener(onItemClickListener: OnItemClickListener) {
         this.onItemClickListener = onItemClickListener
@@ -85,6 +95,7 @@ class DiaryAdapter: ListAdapter<AdapterItem, DiaryAdapter.ViewHolder>(AdapterIte
             items.add(AdapterItem.DiaryItem(item))
         }
 
+        recyclerView?.scheduleLayoutAnimation()
         submitList(items)
     }
 
@@ -108,15 +119,17 @@ class DiaryAdapter: ListAdapter<AdapterItem, DiaryAdapter.ViewHolder>(AdapterIte
                         title = diary.content.substring(0, 50)
                     binding.textContent.text = title
 
-                    binding.textFolder.visibility = View.GONE
-
                     coroutineScope.launch {
                         withContext(Dispatchers.IO) {
                             AppDatabase.getInstance(binding.root.context).folderDao().getFolderValue(diary.folderId)?.let {
                                 val folderName = it.name
                                 withContext(Dispatchers.Main) {
-                                    binding.textFolder.visibility = View.VISIBLE
+                                    binding.linearLayoutFolder.visibility = View.VISIBLE
                                     binding.textFolder.text = folderName
+                                }
+                            } ?: run {
+                                withContext(Dispatchers.Main) {
+                                    binding.linearLayoutFolder.visibility = View.GONE
                                 }
                             }
                         }
@@ -137,6 +150,8 @@ class DiaryAdapter: ListAdapter<AdapterItem, DiaryAdapter.ViewHolder>(AdapterIte
 
                 }
                 is ItemDateBinding -> {
+                    binding.root.isEnabled = false
+
                     val dateItem = (adapterItem as AdapterItem.DateItem)
                     binding.textYearMonth.text = dateItem.yearMonth
 
@@ -156,10 +171,11 @@ class DiaryAdapter: ListAdapter<AdapterItem, DiaryAdapter.ViewHolder>(AdapterIte
                                         SORT_BY_LATEST
 
                             val list = currentList.filterIsInstance<AdapterItem.DiaryItem>().map { it.diary }
-
                             sort(list)
                             addDateAndSubmitList(list, binding.root.context)
                             notifyDataSetChanged()
+
+                            storeSortingCriteria(context, sortingCriteria)
                         }
                     } else
                         binding.linearLayout.visibility = View.GONE
@@ -185,6 +201,8 @@ class DiaryAdapter: ListAdapter<AdapterItem, DiaryAdapter.ViewHolder>(AdapterIte
         }
     }
 
+    fun getDiary(position: Int) = (getItem(position) as AdapterItem.DiaryItem).diary
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return from(parent, viewType)
     }
@@ -209,6 +227,21 @@ class DiaryAdapter: ListAdapter<AdapterItem, DiaryAdapter.ViewHolder>(AdapterIte
                     }
             )
         }
+    }
+
+    private fun storeSortingCriteria(context: Context, sortingCriteria: Int) {
+        val sharedPreferences = context.getSharedPreferences(PREFERENCES_SORTING_CRITERIA, Context.MODE_PRIVATE)
+        sharedPreferences.edit().putInt(KEY_SORTING_CRITERIA, sortingCriteria).apply()
+    }
+
+    private fun restoreSortingCriteria(context: Context): Int =
+            context.getSharedPreferences(PREFERENCES_SORTING_CRITERIA, Context.MODE_PRIVATE).getInt(KEY_SORTING_CRITERIA, SORT_BY_LATEST)
+
+    companion object {
+        private const val PREFERENCES_SORTING_CRITERIA = "com.duke.elliot.youtubediary.main.diaries" +
+                ".preferences_sorting_criteria"
+        private const val KEY_SORTING_CRITERIA = "com.duke.elliot.youtubediary.main.diaries" +
+                ".key_sorting_criteria"
     }
 }
 

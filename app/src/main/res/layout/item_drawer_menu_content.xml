@@ -53,6 +53,7 @@
             android:layout_marginStart="56dp"
             android:textColor="@color/text_disabled"
             android:textSize="@dimen/text_size_smallest"
+            android:lineSpacingMultiplier="@dimen/line_spacing_multiplier"
             android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

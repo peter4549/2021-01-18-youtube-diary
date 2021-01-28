@@ -7,7 +7,7 @@
         android:id="@+id/cardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="0.5dp"
+        android:layout_marginBottom="@dimen/spacing_finely"
         android:foreground="?attr/selectableItemBackground"
         app:cardBackgroundColor="@color/layout_background_dark"
         app:cardCornerRadius="0dp">

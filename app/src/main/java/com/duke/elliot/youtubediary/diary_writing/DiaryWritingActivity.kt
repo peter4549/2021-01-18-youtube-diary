@@ -2,6 +2,7 @@ package com.duke.elliot.youtubediary.diary_writing
 
 import android.Manifest
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
@@ -131,6 +132,8 @@ class DiaryWritingActivity: BaseActivity(), ObservableScrollViewCallbacks,
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_diary_writing)
         binding.observableScrollView.setScrollViewCallbacks(this)
+
+        setBackgroundColor(binding.toolbar, color = MainApplication.primaryThemeColor)
 
         mode = intent.getIntExtra(EXTRA_NAME_MODE, MODE_CREATE)
         val originalDiary = intent.getParcelableExtra<Diary>(EXTRA_NAME_DIARY)  // Get existing diary.
@@ -337,8 +340,10 @@ class DiaryWritingActivity: BaseActivity(), ObservableScrollViewCallbacks,
                     )
 
                     displayVideoModel?.let {
-                        if (binding.relativeLayoutViewPager.isNotVisible())
+                        if (binding.relativeLayoutViewPager.isNotVisible()) {
                             binding.relativeLayoutViewPager.visibility = View.VISIBLE
+                            setBackgroundColor(binding.toolbar, color = Color.TRANSPARENT)
+                        }
 
                         if (binding.viewAnchor.isVisible)
                             binding.viewAnchor.visibility = View.GONE
@@ -362,7 +367,11 @@ class DiaryWritingActivity: BaseActivity(), ObservableScrollViewCallbacks,
 
     override fun onScrollChanged(scrollY: Int, firstScroll: Boolean, dragging: Boolean) {
         val alpha = 1F.coerceAtMost(scrollY / (parallaxImageHeight - toolbarHeight).toFloat())
-        binding.toolbar.setBackgroundColor(ScrollUtils.getColorWithAlpha(alpha, MainApplication.primaryThemeColor))
+
+        if (binding.relativeLayoutViewPager.isVisible)
+            binding.toolbar.setBackgroundColor(ScrollUtils.getColorWithAlpha(alpha, MainApplication.primaryThemeColor))
+        else
+            binding.toolbar.setBackgroundColor(MainApplication.primaryThemeColor)
 
         if (binding.relativeLayoutViewPager.isVisible)
             binding.relativeLayoutViewPager.translationY = scrollY / 2F

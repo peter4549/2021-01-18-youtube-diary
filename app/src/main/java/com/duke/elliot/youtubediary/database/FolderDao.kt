@@ -26,4 +26,7 @@ interface FolderDao {
 
     @Update
     fun update(folder: Folder)
+
+    @Query("UPDATE folder SET diaryIds = :diaryIds WHERE id = :folderId")
+    fun updateDiaryIds(folderId: Long, diaryIds: Array<Long>)
 }

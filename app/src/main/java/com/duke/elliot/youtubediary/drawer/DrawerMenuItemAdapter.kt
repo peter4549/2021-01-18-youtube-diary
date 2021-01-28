@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
+import androidx.annotation.DrawableRes
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
@@ -61,16 +62,18 @@ class DrawerMenuItemAdapter(private val drawerMenuItemDrawers: ArrayList<DrawerA
                     drawerMenuListItem.iconResourceId?.let { binding.imageHeader.setImageResource(it) }
                     drawerMenuListItem.iconColor?.let { binding.imageHeader.setColorFilter(it) }
                     drawerMenuListItem.arrowDropDownColor?.let { binding.imageArrowDropDown.setColorFilter(it) }
-                    drawerMenuListItem.neutralIconResourceId?.let { binding.imageNeutral.setImageResource(it) }
-                    drawerMenuListItem.neutralIconColor?.let { binding.imageNeutral.setColorFilter(it) }
+                    drawerMenuListItem.addIconResourceId?.let { binding.imageNeutral.setImageResource(it) }
+                    drawerMenuListItem.addIconColor?.let { binding.imageNeutral.setColorFilter(it) }
                     drawerMenuListItem.textShowAll?.let { binding.textShowAll.text = it }
+                    drawerMenuListItem.showAllIconResourceId?.let { binding.imageShowAll.setImageResource(it) }
+                    drawerMenuListItem.showAllIconColor?.let { binding.imageShowAll.setColorFilter(it) }
 
                     binding.linearLayoutHeader.setOnClickListener {
                         drawerMenuListItem.onHeaderClick?.invoke(binding)
                     }
 
                     binding.imageNeutral.setOnClickListener {
-                        drawerAdapterItem.onNeutralIconClick?.invoke()
+                        drawerAdapterItem.onAddIconClick?.invoke()
                     }
 
                     binding.recyclerView.apply {
@@ -78,8 +81,8 @@ class DrawerMenuItemAdapter(private val drawerMenuItemDrawers: ArrayList<DrawerA
                         adapter = drawerMenuListItem.adapter
                     }
 
-                    binding.textShowAll.setOnClickListener {
-                        drawerMenuListItem.onTextShowAllClick?.invoke()
+                    binding.constraintLayoutShowAll.setOnClickListener {
+                        drawerMenuListItem.onShowAllClick?.invoke()
                     }
                 }
             }
@@ -149,19 +152,21 @@ sealed class DrawerAdapterItem {
     ): DrawerAdapterItem()
 
     class DrawerMenuListItemDrawer<T> (
-            override val id: Long,
-            override val viewType: Int,
-            var title: String? = null,
-            var iconResourceId: Int? = null,
-            var adapter: ListAdapter<T, RecyclerView.ViewHolder>? = null,
-            @ColorInt var iconColor: Int? = null,
-            @ColorInt var arrowDropDownColor: Int? = null,
-            var neutralIconResourceId: Int? = null,
-            @ColorInt var neutralIconColor: Int? = null,
-            var onHeaderClick: ((ItemDrawerMenuListBinding) -> Unit)? = null,
-            var onNeutralIconClick: (() -> Unit)? = null,
-            var textShowAll: String? = null,
-            var onTextShowAllClick: (() -> Unit)? = null,
+        override val id: Long,
+        override val viewType: Int,
+        var title: String? = null,
+        @DrawableRes var iconResourceId: Int? = null,
+        var adapter: ListAdapter<T, RecyclerView.ViewHolder>? = null,
+        @ColorInt var iconColor: Int? = null,
+        @ColorInt var arrowDropDownColor: Int? = null,
+        var onHeaderClick: ((ItemDrawerMenuListBinding) -> Unit)? = null,
+        @DrawableRes var addIconResourceId: Int? = null,
+        @ColorInt var addIconColor: Int? = null,
+        var onAddIconClick: (() -> Unit)? = null,
+        var textShowAll: String? = null,
+        @DrawableRes var showAllIconResourceId: Int? = null,
+        @ColorInt var showAllIconColor: Int? = null,
+        var onShowAllClick: (() -> Unit)? = null,
     ): DrawerAdapterItem()
 
     abstract val id: Long

@@ -6,8 +6,10 @@
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="0.5dp"
-        app:cardBackgroundColor="@color/layout_background_dark">
+        android:layout_marginBottom="@dimen/spacing_finely"
+        android:foreground="?attr/selectableItemBackground"
+        app:cardBackgroundColor="@color/layout_background_dark"
+        app:cardCornerRadius="0dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -62,6 +64,8 @@
                 android:layout_marginEnd="@dimen/spacing_small"
                 android:paddingTop="@dimen/spacing_smallest"
                 android:paddingBottom="@dimen/spacing_smallest"
+                android:maxLines="2"
+                android:ellipsize="end"
                 app:layout_constraintEnd_toStartOf="@+id/image_thumbnail"
                 app:layout_constraintStart_toEndOf="@+id/linearLayout_date"
                 app:layout_constraintTop_toTopOf="parent"
@@ -72,29 +76,33 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/spacing_small"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="@dimen/spacing_smallest"
                 android:layout_marginEnd="@dimen/spacing_small"
                 android:layout_marginBottom="@dimen/spacing_smallest"
+                android:baselineAligned="false"
                 android:orientation="horizontal"
+                android:gravity="center_vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/image_thumbnail"
                 app:layout_constraintStart_toEndOf="@+id/linearLayout_date"
                 app:layout_constraintTop_toBottomOf="@+id/text_content">
 
                 <LinearLayout
+                    android:id="@+id/linearLayout_folder"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/spacing_smallest"
                     android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    tools:ignore="UseCompoundDrawables">
+                    tools:ignore="UseCompoundDrawables,UselessParent">
 
                     <ImageView
                         android:layout_width="16dp"
                         android:layout_height="16dp"
                         android:layout_marginEnd="@dimen/spacing_smallest"
                         app:srcCompat="@drawable/ic_round_folder_24"
+                        app:tint="@color/color_icon"
                         tools:ignore="ContentDescription" />
 
                     <TextView

@@ -56,6 +56,11 @@
     <color name="speech_recognition_view_03">#3164d7</color>
     <color name="speech_recognition_view_04">#2e9641</color>
 
+    <!-- Underlay Buttons -->
+    <color name="underlay_button_more">@color/colorBlue200</color>
+    <color name="underlay_button_edit">@color/colorLightBlue200</color>
+    <color name="underlay_button_delete">#E25822</color>
+
     <!-- Material Colors 400 -->
     <color name="colorRed400">#ef5350</color>
     <color name="colorPink400">#ec407a</color>

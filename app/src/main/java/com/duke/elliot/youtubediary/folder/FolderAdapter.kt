@@ -18,6 +18,7 @@ const val VIEW_TYPE_EMPTY_ITEM = 1
 
 class FolderAdapter: ListAdapter<FolderAdapterItem, RecyclerView.ViewHolder>(FolderDiffCallback()) {
 
+    private var recyclerView: RecyclerView? = null
     private var onClickListener: OnClickListener? = null
 
     fun setOnClickListener(onClickListener: OnClickListener) {
@@ -31,6 +32,7 @@ class FolderAdapter: ListAdapter<FolderAdapterItem, RecyclerView.ViewHolder>(Fol
             else
                 list.map { FolderAdapterItem.FolderItem(it.id, it) }
 
+        recyclerView?.scheduleLayoutAnimation()
         submitList(items)
     }
 
@@ -38,6 +40,11 @@ class FolderAdapter: ListAdapter<FolderAdapterItem, RecyclerView.ViewHolder>(Fol
         fun onEditClick(folder: Folder, position: Int)
         fun onDeleteClick(folder: Folder)
         fun onItemClick(folder: Folder)
+    }
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        this.recyclerView = recyclerView
     }
 
     inner class ViewHolder constructor(val binding: ViewDataBinding): RecyclerView.ViewHolder(binding.root) {

@@ -20,15 +20,27 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <FrameLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/frameLayout_addChannel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/selectableItemBackground"
+            android:elevation="4dp"
             android:gravity="center"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/toolbar">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="@dimen/spacing_small"
+                app:layout_constraintBottom_toBottomOf="@+id/text_addChannel"
+                app:layout_constraintEnd_toStartOf="@+id/text_addChannel"
+                app:layout_constraintTop_toTopOf="@+id/text_addChannel"
+                app:srcCompat="@drawable/ic_sharp_add_24"
+                app:tint="@color/color_text"
+                tools:ignore="ContentDescription" />
 
             <TextView
                 android:id="@+id/text_addChannel"
@@ -36,17 +48,14 @@
                 android:layout_height="48dp"
                 android:layout_gravity="center"
                 android:layout_marginEnd="@dimen/spacing_small"
-                android:drawablePadding="@dimen/spacing_small"
                 android:gravity="center"
                 android:text="@string/add_channel"
                 android:textSize="@dimen/text_size_medium"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:drawableStartCompat="@drawable/ic_sharp_add_24"
-                app:drawableTint="@color/color_icon" />
-        </FrameLayout>
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView_channel"
